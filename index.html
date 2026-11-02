@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Financial Pulse - 家庭帳務控制中心</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Flaticon UIcons -->
+    <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/2.6.0/uicons-bold-rounded/css/uicons-bold-rounded.css">
+    <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/2.6.0/uicons-bold-straight/css/uicons-bold-straight.css">
+    
+    <!-- Google Fonts: Comic Neue fallback for Comic Sans MS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['PingFang TC', 'PingFang HK', 'PingFang SC', 'Comic Sans MS', 'Comic Sans', 'Comic Neue', 'sans-serif'],
+                        mono: ['Comic Sans MS', 'Comic Sans', 'Comic Neue', 'Chalkboard SE', 'PingFang TC', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        html { font-size: 16px; overscroll-behavior-y: none; }
+        body {
+            font-family: 'PingFang TC', 'PingFang HK', 'PingFang SC', 'Comic Sans MS', 'Comic Sans', 'Comic Neue', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            background-color: #f3f2ee;
+        }
+        .font-comic {
+            font-family: 'Comic Sans MS', 'Comic Sans', 'Comic Neue', 'Chalkboard SE', 'PingFang TC', sans-serif;
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #d6d3cd; }
+    </style>
+</head>
+<body class="bg-[#f3f2ee] text-stone-800 min-h-screen flex flex-col pb-24 max-w-md sm:max-w-xl md:max-w-4xl lg:max-w-6xl mx-auto border-x border-stone-300">
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-sm px-4 pointer-events-none"></div>
+
+    <!-- MAIN VIEW AREA -->
+    <main class="flex-grow px-4 pt-4 space-y-5">
+
+        <!-- TAB 1: 主頁 (HOME) -->
+        <div id="view-home" class="tab-view space-y-5">
+            
+            <!-- Floating Month Header -->
+            <div class="sticky top-0 z-40 bg-[#f3f2ee] flex items-center justify-center py-2.5 -mx-4 px-4">
+                <div class="relative inline-flex items-baseline space-x-2">
+                    <span id="home-month-label" class="text-3xl sm:text-4xl font-comic font-black tracking-wider text-stone-900 relative z-10 px-1">OCTOBER</span>
+                    <span id="home-year-label" class="text-base sm:text-lg font-comic font-bold tracking-widest text-stone-600 relative z-10">2026</span>
+                    <span id="home-month-highlight" class="absolute bottom-0.5 left-0 w-[72%] h-3 bg-sky-300/80 rounded-xs -z-0"></span>
+                </div>
+            </div>
+
+            <!-- Dynamic Daily Budget Status Bar -->
+            <div class="relative">
+                <div class="absolute inset-0 bg-stone-300/80 translate-x-1 translate-y-1 border border-stone-400/40"></div>
+                <div class="relative bg-white border border-stone-300 flex items-stretch divide-x divide-stone-200">
+                    <div class="bg-stone-100 px-3.5 py-2.5 flex items-center justify-center font-comic font-black text-stone-900 text-lg sm:text-xl flex-shrink-0" id="home-date-today">
+                        10/28
+                    </div>
+                    <div class="flex-grow grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-stone-200 p-2 gap-1.5">
+                        <div class="px-2.5 py-1.5 flex items-center justify-between min-w-0">
+                            <span class="text-base sm:text-lg font-bold text-stone-800 flex items-center flex-shrink-0 mr-1.5">Hsiang 預算</span>
+                            <span id="home-status-hub-text" class="text-lg sm:text-xl font-black font-comic text-stone-900 truncate text-right">剩 $0</span>
+                        </div>
+                        <div class="px-2.5 py-1.5 flex items-center justify-between min-w-0">
+                            <span class="text-base sm:text-lg font-bold text-stone-800 flex items-center flex-shrink-0 mr-1.5">Ning 預算</span>
+                            <span id="home-status-my-text" class="text-lg sm:text-xl font-black font-comic text-stone-900 truncate text-right">剩 $0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top 3 Swipable Cards -->
+            <div class="flex md:grid md:grid-cols-3 gap-4 overflow-x-auto snap-x snap-mandatory pb-2 custom-scrollbar -mx-4 px-4 md:mx-0 md:px-0">
+                <!-- Card 1: 本月家庭總花費 -->
+                <div class="min-w-[88%] md:min-w-0 snap-center flex-shrink-0 relative">
+                    <div class="absolute inset-0 bg-stone-900 translate-x-1 translate-y-1"></div>
+                    <div class="relative bg-[#3a4248] text-stone-100 p-5 sm:p-6 border border-stone-700 flex flex-col justify-between space-y-3.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-lg sm:text-xl font-black text-stone-100 tracking-wide flex items-center">
+                                <span class="w-3.5 h-3.5 bg-[#c2d1b8] mr-2"></span>本月家庭總花費
+                            </span>
+                            <span id="home-total-badge" class="text-sm font-comic font-black px-2.5 py-1 bg-stone-800 text-[#c2d1b8] border border-stone-600">0%</span>
+                        </div>
+                        <div>
+                            <div class="text-4xl sm:text-5xl font-black font-comic tracking-tight text-white" id="home-total-spent">$0</div>
+                            <div class="text-base text-stone-300 mt-2 flex justify-between font-bold">
+                                <span>預算 <strong id="home-total-budget" class="font-comic text-stone-100 text-lg">$0</strong></span>
+                                <span id="home-total-rem-text" class="text-[#c2d1b8] font-bold">剩餘 $0</span>
+                            </div>
+                        </div>
+                        <div class="w-full bg-stone-700 h-3 overflow-hidden">
+                            <div id="home-total-bar" class="bg-[#c2d1b8] h-3 transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2: Hsiang 花費 -->
+                <div class="min-w-[88%] md:min-w-0 snap-center flex-shrink-0 relative">
+                    <div class="absolute inset-0 bg-stone-300/80 translate-x-1 translate-y-1 border border-stone-400/40"></div>
+                    <div class="relative bg-white p-5 sm:p-6 border border-stone-300 flex flex-col justify-between space-y-3.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-lg sm:text-xl font-black text-[#4a4e51] tracking-wide">Hsiang 花費</span>
+                            <span id="home-hub-badge" class="text-sm font-comic font-black px-2.5 py-1 bg-[#f0f1f2] text-[#4a4e51] border border-[#d5d8db]">0%</span>
+                        </div>
+                        <div>
+                            <div class="text-4xl sm:text-5xl font-black font-comic tracking-tight text-stone-900" id="home-hub-spent">$0</div>
+                            <div class="text-base text-stone-600 mt-2 flex justify-between font-bold">
+                                <span>預算 <strong id="home-hub-budget" class="font-comic text-stone-800 text-lg">$0</strong></span>
+                                <span id="home-hub-rem-text" class="text-[#4a4e51] font-bold">剩餘 $0</span>
+                            </div>
+                        </div>
+                        <div class="w-full bg-stone-100 h-3 overflow-hidden">
+                            <div id="home-hub-bar" class="bg-[#4a4e51] h-3 transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3: Ning 花費 -->
+                <div class="min-w-[88%] md:min-w-0 snap-center flex-shrink-0 relative">
+                    <div class="absolute inset-0 bg-stone-300/80 translate-x-1 translate-y-1 border border-stone-400/40"></div>
+                    <div class="relative bg-white p-5 sm:p-6 border border-stone-300 flex flex-col justify-between space-y-3.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-lg sm:text-xl font-black text-[#823a45] tracking-wide">Ning 花費</span>
+                            <span id="home-my-badge" class="text-sm font-comic font-black px-2.5 py-1 bg-[#f9f0f1] text-[#823a45] border border-[#ead8db]">0%</span>
+                        </div>
+                        <div>
+                            <div class="text-4xl sm:text-5xl font-black font-comic tracking-tight text-stone-900" id="home-my-spent">$0</div>
+                            <div class="text-base text-stone-600 mt-2 flex justify-between font-bold">
+                                <span>預算 <strong id="home-my-budget" class="font-comic text-stone-800 text-lg">$0</strong></span>
+                                <span id="home-my-rem-text" class="text-[#823a45] font-bold">剩餘 $0</span>
+                            </div>
+                        </div>
+                        <div class="w-full bg-stone-100 h-3 overflow-hidden">
+                            <div id="home-my-bar" class="bg-[#823a45] h-3 transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daily Card Header & Action Icons -->
+            <div class="flex items-center justify-between pt-2">
+                <h3 class="text-lg sm:text-xl font-black text-stone-900 flex items-center">
+                    <i class="fa-regular fa-clock mr-2 text-stone-600"></i>近期記帳紀錄
+                </h3>
+                <div class="flex items-center space-x-2">
+                    <button onclick="openAddModal()" class="w-9 h-9 bg-stone-800 hover:bg-stone-700 text-white flex items-center justify-center transition active:scale-95 shadow-2xs" title="記一筆">
+                        <i class="fa-solid fa-plus text-base"></i>
+                    </button>
+                    <button onclick="toggleMonthlyDetailModal()" class="w-9 h-9 bg-stone-200 hover:bg-stone-300 text-stone-800 border border-stone-300 flex items-center justify-center transition active:scale-95 shadow-2xs" title="當月完整明細">
+                        <i class="fa-solid fa-list-check text-base"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Grouped Transaction List -->
+            <div class="space-y-4" id="home-daily-cards-container"></div>
+
+        </div>
+
+        <!-- TAB 2: 報告 (REPORT) -->
+        <div id="view-report" class="tab-view hidden space-y-5">
+            <div class="space-y-3 py-1">
+                <div class="grid grid-cols-2 p-1 bg-stone-200/80 border border-stone-300 gap-1 text-sm sm:text-base font-bold max-w-xs mx-auto">
+                    <button onclick="setReportMode('month')" id="report-mode-btn-month" class="py-2 text-center transition bg-white text-stone-900 shadow-xs border border-stone-300 font-extrabold">
+                        月度報告
+                    </button>
+                    <button onclick="setReportMode('year')" id="report-mode-btn-year" class="py-2 text-center transition text-stone-500 hover:text-stone-800 font-bold">
+                        全年總覽
+                    </button>
+                </div>
+                <div class="flex items-center justify-between px-2 pt-1">
+                    <button onclick="navigateReportPeriod(-1)" class="w-10 h-10 bg-white hover:bg-stone-100 text-stone-800 flex items-center justify-center transition active:scale-95 border border-stone-300">
+                        <i class="fa-solid fa-chevron-left text-base"></i>
+                    </button>
+                    <div class="text-center relative inline-block">
+                        <span id="report-period-title" class="text-2xl sm:text-3xl font-comic font-black tracking-wider text-stone-900 relative z-10 px-1">
+                            OCTOBER 2026
+                        </span>
+                        <span id="report-period-highlight" class="absolute bottom-0.5 left-0 w-[75%] h-3 bg-sky-300/80 rounded-xs -z-0"></span>
+                    </div>
+                    <button onclick="navigateReportPeriod(1)" class="w-10 h-10 bg-white hover:bg-stone-100 text-stone-800 flex items-center justify-center transition active:scale-95 border border-stone-300">
+                        <i class="fa-solid fa-chevron-right text-base"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Card 1: Pie Chart -->
+            <div class="relative">
+                <div class="absolute inset-0 bg-stone-300/80 translate-x-1 translate-y-1 border border-stone-400/40"></div>
+                <div class="relative bg-white p-4 sm:p-5 border border-stone-300 space-y-3">
+                    <div class="flex items-center justify-between border-b border-stone-200 pb-2">
+                        <h3 class="font-black text-lg sm:text-xl text-stone-900" id="report-chart-title">類別花費占比</h3>
+                        <span class="text-2xl sm:text-3xl font-comic font-black text-stone-900" id="report-total-amount">$0</span>
+                    </div>
+                    <div class="relative h-56 sm:h-64 pt-1">
+                        <canvas id="reportCategoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2: Budgets Progress Breakdown by Person -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <!-- Hsiang Card -->
+                <div class="relative">
+                    <div class="absolute inset-0 bg-stone-300/80 translate-x-1 translate-y-1 border border-stone-400/40"></div>
+                    <div class="relative bg-white p-5 sm:p-6 border border-stone-300 space-y-4">
+                        <div class="border-b border-stone-200 pb-3">
+                            <h4 class="font-black text-lg sm:text-xl text-stone-900">Hsiang 的預算狀況</h4>
+                        </div>
+                        <div class="flex items-baseline justify-between">
+                            <div>
+                                <span class="text-sm sm:text-base text-stone-500 block font-bold">已花費</span>
+                                <span class="text-3xl sm:text-4xl font-black font-comic text-stone-900" id="hub-card-spent">$0</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-sm sm:text-base text-stone-500 block font-bold">預算目標</span>
+                                <span class="text-xl sm:text-2xl font-bold font-comic text-stone-700" id="hub-card-target">$0</span>
+                            </div>
+                        </div>
+                        <div class="space-y-1.5">
+                            <div class="flex justify-between text-base font-bold">
+                                <span>進度</span>
+                                <span id="hub-card-pct" class="font-comic text-[#4a4e51]">0%</span>
+                            </div>
+                            <div class="w-full bg-stone-100 h-3.5 overflow-hidden">
+                                <div id="hub-card-bar" class="bg-[#4a4e51] h-3.5 transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div id="hub-category-progress" class="space-y-2 pt-2 border-t border-stone-200"></div>
+                    </div>
+                </div>
+
+                <!-- Ning Card -->
+                <div class="relative">
+                    <div class="absolute inset-0 bg-stone-300/80 translate-x-1 translate-y-1 border border-stone-400/40"></div>
+                    <div class="relative bg-white p-5 sm:p-6 border border-stone-300 space-y-4">
+                        <div class="border-b border-stone-200 pb-3">
+                            <h4 class="font-black text-lg sm:text-xl text-stone-900">Ning 的預算狀況</h4>
+                        </div>
+                        <div class="flex items-baseline justify-between">
+                            <div>
+                                <span class="text-sm sm:text-base text-stone-500 block font-bold">已花費</span>
+                                <span class="text-3xl sm:text-4xl font-black font-comic text-stone-900" id="me-card-spent">$0</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-sm sm:text-base text-stone-500 block font-bold">預算目標</span>
+                                <span class="text-xl sm:text-2xl font-bold font-comic text-stone-700" id="me-card-target">$0</span>
+                            </div>
+                        </div>
+                        <div class="space-y-1.5">
+                            <div class="flex justify-between text-base font-bold">
+                                <span>進度</span>
+                                <span id="me-card-pct" class="font-comic text-[#823a45]">0%</span>
+                            </div>
+                            <div class="w-full bg-stone-100 h-3.5 overflow-hidden">
+                                <div id="me-card-bar" class="bg-[#823a45] h-3.5 transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div id="me-category-progress" class="space-y-2 pt-2 border-t border-stone-200"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: 結算 (SETTLEMENT) -->
+        <div id="view-settlement" class="tab-view hidden space-y-5">
+            <!-- Boarding Pass Ticket Card -->
+            <div class="relative">
+                <div class="absolute inset-0 bg-stone-900 translate-x-1 translate-y-1"></div>
+                <div class="relative bg-[#3a4248] text-stone-100 p-4 sm:p-5 border border-stone-700">
+                    <div class="relative shadow-md rounded-xs">
+                        <div class="bg-white p-5 sm:p-6 text-stone-900 flex items-center justify-between rounded-t-xs">
+                            <div>
+                                <span class="text-xs sm:text-sm font-comic text-stone-400 font-bold tracking-widest uppercase block mb-1">Settlement Status</span>
+                                <div id="settle-hero-label" class="text-2xl sm:text-3xl font-black text-stone-900 tracking-wide">
+                                    計算結算中...
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="relative bg-white h-4 flex items-center justify-center">
+                            <div class="absolute -left-3.5 top-1/2 -translate-y-1/2 w-7 h-7 bg-[#3a4248] rounded-full z-10"></div>
+                            <div class="w-full border-b-2 border-dashed border-stone-300 mx-5"></div>
+                            <div class="absolute -right-3.5 top-1/2 -translate-y-1/2 w-7 h-7 bg-[#3a4248] rounded-full z-10"></div>
+                        </div>
+
+                        <div class="bg-stone-100 p-5 sm:p-6 text-stone-900 border-t border-stone-200 rounded-b-xs">
+                            <span class="text-xs sm:text-sm font-extrabold text-stone-500 block mb-1">對帳結算金額</span>
+                            <div id="settle-hero-amount" class="text-5xl sm:text-6xl font-black font-comic tracking-tight text-stone-900">
+                                $0
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transfer Records Card -->
+            <div class="relative">
+                <div class="absolute inset-0 bg-stone-300/80 translate-x-1 translate-y-1 border border-stone-400/40"></div>
+                <div class="relative bg-white p-5 sm:p-6 border border-stone-300 space-y-4">
+                    <div class="flex items-center justify-between border-b border-stone-200 pb-3">
+                        <h3 class="font-black text-lg sm:text-xl text-stone-900">銀行轉帳匯款紀錄</h3>
+                        <button onclick="toggleTransferModal()" class="bg-stone-800 hover:bg-stone-700 text-white text-base px-4 py-2 font-bold transition active:scale-95 flex items-center space-x-1.5">
+                            <i class="fa-solid fa-plus text-sm"></i>
+                            <span>新增轉帳</span>
+                        </button>
+                    </div>
+
+                    <!-- 匯款統計摘要區塊 -->
+                    <div class="grid grid-cols-2 gap-3 bg-stone-50 p-3.5 border border-stone-200 text-sm sm:text-base font-bold">
+                        <div>
+                            <span class="text-stone-500 text-xs block font-bold">Ning 轉給 Hsiang</span>
+                            <span id="stat-tf-ning" class="text-lg sm:text-xl font-comic font-black text-stone-900">$0</span>
+                        </div>
+                        <div>
+                            <span class="text-stone-500 text-xs block font-bold">Hsiang 轉給 Ning</span>
+                            <span id="stat-tf-hsiang" class="text-lg sm:text-xl font-comic font-black text-stone-900">$0</span>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto border border-stone-200">
+                        <table class="w-full text-left text-base text-stone-800">
+                            <thead class="bg-stone-100 text-stone-800 uppercase text-base border-b border-stone-200 font-bold">
+                                <tr>
+                                    <th class="py-3 px-3.5">日期</th>
+                                    <th class="py-3 px-3.5">轉帳人</th>
+                                    <th class="py-3 px-3.5">備註</th>
+                                    <th class="py-3 px-3.5 text-right">金額</th>
+                                    <th class="py-3 px-3.5 text-center">刪除</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transfer-table-body" class="divide-y divide-stone-200 text-base sm:text-lg"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: SETTINGS (設定分頁) -->
+        <div id="view-settings" class="tab-view hidden space-y-5">
+            <!-- Card 1: Budget Settings -->
+            <div class="relative">
+                <div class="absolute inset-0 bg-stone-300/80 translate-x-1 translate-y-1 border border-stone-400/40"></div>
+                <div class="relative bg-white p-5 sm:p-6 border border-stone-300 space-y-4">
+                    <div class="flex items-center justify-between border-b border-stone-200 pb-3">
+                        <h2 class="font-black text-xl sm:text-2xl text-stone-900">月度預算金額設定</h2>
+                        <button onclick="saveBudgets()" class="bg-[#78866b] hover:bg-[#637057] text-white text-base px-5 py-2 font-bold transition">
+                            儲存預算
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto border border-stone-200">
+                        <table class="w-full text-left text-base text-stone-800">
+                            <thead class="bg-stone-100 text-stone-800 uppercase text-base border-b border-stone-200 font-bold">
+                                <tr>
+                                    <th class="py-3.5 px-4">分類</th>
+                                    <th class="py-3.5 px-4 font-comic font-black text-[#4a4e51]">Hsiang 預算</th>
+                                    <th class="py-3.5 px-4 font-comic font-black text-[#823a45]">Ning 預算</th>
+                                </tr>
+                            </thead>
+                            <tbody id="budget-settings-tbody" class="divide-y divide-stone-200"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2: Cloud Sync -->
+            <div class="relative">
+                <div class="absolute inset-0 bg-stone-300/80 translate-x-1 translate-y-1 border border-stone-400/40"></div>
+                <div class="relative bg-white p-5 sm:p-6 border border-stone-300 space-y-4">
+                    <div class="border-b border-stone-200 pb-3">
+                        <h2 class="font-black text-xl sm:text-2xl text-stone-900">Google Sheets 雲端同步</h2>
+                    </div>
+                    <div class="space-y-4 bg-stone-50 p-4 border border-stone-300 text-base">
+                        <div>
+                            <label class="block font-bold text-stone-800 mb-1.5 text-base sm:text-lg font-comic">GAS Web App URL</label>
+                            <input type="text" id="gas-api-url" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-white border border-stone-300 px-3.5 py-2.5 font-comic text-sm sm:text-base">
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1">
+                            <button onclick="saveGasUrlAndSync()" class="col-span-2 sm:col-span-1 bg-[#78866b] hover:bg-[#637057] text-white text-base py-3 font-bold font-comic transition">
+                                儲存並同步
+                            </button>
+                            <button onclick="generateShareableUrl()" class="bg-stone-800 hover:bg-stone-700 text-white text-base py-3 font-bold font-comic transition">
+                                複製網址
+                            </button>
+                            <button onclick="testConnection()" class="bg-stone-200 hover:bg-stone-300 text-stone-800 text-base py-3 font-bold font-comic transition border border-stone-300">
+                                測試連線
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal: Add Transfer -->
+    <div id="transfer-modal" class="fixed inset-0 bg-stone-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white p-6 max-w-sm w-full border border-stone-400 shadow-xl space-y-4">
+            <div class="flex justify-between items-center border-b border-stone-200 pb-3">
+                <h3 class="font-black text-stone-900 text-lg sm:text-xl flex items-center">
+                    <i class="fa-solid fa-paper-plane text-[#6b8299] mr-2 text-lg"></i>登記銀行轉帳匯款
+                </h3>
+                <button onclick="toggleTransferModal()" class="text-stone-400 hover:text-stone-700">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <div class="space-y-3.5 text-base">
+                <div>
+                    <label class="block font-bold text-stone-800 mb-1">匯款日期</label>
+                    <input type="date" id="tf-date" class="w-full bg-stone-50 border border-stone-300 p-2.5 font-comic text-base">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-stone-800 mb-1">轉出人</label>
+                        <select id="tf-from" class="w-full bg-stone-50 border border-stone-300 p-2.5 font-bold text-base">
+                            <option value="Ning">Ning</option>
+                            <option value="Hsiang">Hsiang</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-stone-800 mb-1">接收人</label>
+                        <select id="tf-to" class="w-full bg-stone-50 border border-stone-300 p-2.5 font-bold text-base">
+                            <option value="Hsiang">Hsiang</option>
+                            <option value="Ning">Ning</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-bold text-stone-800 mb-1">匯款金額 (NT$)</label>
+                    <input type="number" id="tf-amount" placeholder="例如：21000" class="w-full bg-stone-50 border border-stone-300 p-2.5 font-extrabold font-comic text-lg">
+                </div>
+                <div>
+                    <label class="block font-bold text-stone-800 mb-1">備註</label>
+                    <input type="text" id="tf-note" placeholder="例如：10月平帳款" class="w-full bg-stone-50 border border-stone-300 p-2.5 font-bold text-base">
+                </div>
+            </div>
+            <div class="flex space-x-3 pt-2">
+                <button onclick="toggleTransferModal()" class="w-1/2 bg-stone-100 border border-stone-300 text-stone-800 py-3 font-bold">取消</button>
+                <button onclick="addTransferRecord()" class="w-1/2 bg-stone-800 text-white py-3 font-bold hover:bg-stone-700">儲存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Monthly Full Details -->
+    <div id="monthly-detail-modal" class="fixed inset-0 bg-stone-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+        <div class="bg-white max-w-2xl w-full border border-stone-400 shadow-2xl flex flex-col max-h-[85vh]">
+            <div class="p-4 bg-stone-100 border-b border-stone-200 flex items-center justify-between flex-shrink-0">
+                <h3 class="font-black text-stone-900 text-lg sm:text-xl flex items-center">
+                    <i class="fa-solid fa-list-check text-stone-700 mr-2"></i>當月完整對帳明細
+                </h3>
+                <button onclick="toggleMonthlyDetailModal()" class="text-stone-400 hover:text-stone-800">
+                    <i class="fa-solid fa-xmark text-2xl"></i>
+                </button>
+            </div>
+            <div class="p-3 bg-stone-50 border-b border-stone-200 space-y-2 flex-shrink-0">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <div class="sm:col-span-2 relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-stone-400"></i>
+                        <input type="text" id="md-search-input" oninput="renderMonthlyDetailList()" placeholder="搜尋品名、關鍵字..." class="w-full pl-9 pr-3 py-2 bg-white border border-stone-300 text-sm font-bold">
+                    </div>
+                    <div>
+                        <select id="md-payer-filter" onchange="renderMonthlyDetailList()" class="w-full bg-white border border-stone-300 py-2 px-3 text-sm font-bold">
+                            <option value="ALL">所有付款對象</option>
+                            <option value="Ning/2">Ning/2</option>
+                            <option value="Hsiang/2">Hsiang/2</option>
+                            <option value="Ning">Ning</option>
+                            <option value="Hsiang">Hsiang</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="overflow-y-auto flex-grow p-3 custom-scrollbar">
+                <table class="w-full text-left text-sm sm:text-base text-stone-800 border border-stone-200">
+                    <thead class="bg-stone-100 text-stone-800 uppercase font-bold sticky top-0 border-b border-stone-200">
+                        <tr>
+                            <th class="py-2.5 px-3">日期</th>
+                            <th class="py-2.5 px-3">類別/品名</th>
+                            <th class="py-2.5 px-3 text-right">金額</th>
+                            <th class="py-2.5 px-3 text-center">付款方式</th>
+                        </tr>
+                    </thead>
+                    <tbody id="md-table-body" class="divide-y divide-stone-200 font-bold"></tbody>
+                </table>
+            </div>
+            <div class="p-3 bg-stone-100 border-t border-stone-200 flex justify-end flex-shrink-0">
+                <button onclick="toggleMonthlyDetailModal()" class="bg-stone-800 text-white px-5 py-2 font-bold text-sm hover:bg-stone-700">關閉</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Quick Add Transaction -->
+    <div id="add-tx-modal" class="fixed inset-0 bg-stone-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white p-6 max-w-sm w-full border border-stone-400 shadow-xl space-y-4">
+            <div class="flex justify-between items-center border-b border-stone-200 pb-3">
+                <h3 class="font-black text-stone-900 text-lg flex items-center">
+                    <i class="fa-solid fa-pen-to-square text-stone-700 mr-2"></i>快速新增記帳
+                </h3>
+                <button onclick="closeAddModal()" class="text-stone-400 hover:text-stone-700">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <div class="space-y-3 text-base">
+                <div>
+                    <label class="block font-bold text-stone-800 mb-1">日期</label>
+                    <input type="date" id="add-tx-date" class="w-full bg-stone-50 border border-stone-300 p-2 font-comic">
+                </div>
+                <div>
+                    <label class="block font-bold text-stone-800 mb-1">品名 / 項目</label>
+                    <input type="text" id="add-tx-item" placeholder="例如：全聯採買" class="w-full bg-stone-50 border border-stone-300 p-2 font-bold">
+                </div>
+                <div>
+                    <label class="block font-bold text-stone-800 mb-1">金額 (NT$)</label>
+                    <input type="number" id="add-tx-amount" placeholder="500" class="w-full bg-stone-50 border border-stone-300 p-2 font-comic font-black text-lg">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-bold text-stone-800 mb-1">分類</label>
+                        <select id="add-tx-category" class="w-full bg-stone-50 border border-stone-300 p-2 font-bold">
+                            <option value="居住">居住</option>
+                            <option value="飲食">飲食</option>
+                            <option value="8510">8510</option>
+                            <option value="交通">交通</option>
+                            <option value="娛樂">娛樂</option>
+                            <option value="醫療">醫療</option>
+                            <option value="雜支">雜支</option>
+                            <option value="旅遊">旅遊</option>
+                            <option value="帕布">帕布</option>
+                            <option value="其他">其他</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-stone-800 mb-1">付款人</label>
+                        <select id="add-tx-payer" class="w-full bg-stone-50 border border-stone-300 p-2 font-bold">
+                            <option value="Ning/2">Ning/2</option>
+                            <option value="Hsiang/2">Hsiang/2</option>
+                            <option value="Ning">Ning</option>
+                            <option value="Hsiang">Hsiang</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="flex space-x-3 pt-2">
+                <button onclick="closeAddModal()" class="w-1/2 bg-stone-100 border border-stone-300 text-stone-800 py-2.5 font-bold">取消</button>
+                <button onclick="saveNewTransaction()" class="w-1/2 bg-stone-800 text-white py-2.5 font-bold hover:bg-stone-700">儲存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MOBILE BOTTOM NAVIGATION BAR -->
+    <nav class="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-stone-300 max-w-md sm:max-w-xl md:max-w-4xl lg:max-w-6xl mx-auto px-3 py-2.5">
+        <div class="grid grid-cols-4 gap-1 text-center">
+            <button onclick="switchTab('home')" id="nav-btn-home" class="nav-btn text-stone-900 flex flex-col items-center justify-center py-2 transition active:scale-95">
+                <i class="fa-solid fa-house text-2xl"></i>
+            </button>
+            <button onclick="switchTab('report')" id="nav-btn-report" class="nav-btn text-stone-400 hover:text-stone-700 flex flex-col items-center justify-center py-2 transition active:scale-95">
+                <i class="fa-solid fa-chart-pie text-2xl"></i>
+            </button>
+            <button onclick="switchTab('settlement')" id="nav-btn-settlement" class="nav-btn text-stone-400 hover:text-stone-700 flex flex-col items-center justify-center py-2 transition active:scale-95">
+                <i class="fa-solid fa-scale-balanced text-2xl"></i>
+            </button>
+            <button onclick="switchTab('settings')" id="nav-btn-settings" class="nav-btn text-stone-400 hover:text-stone-700 flex flex-col items-center justify-center py-2 transition active:scale-95">
+                <i class="fa-solid fa-sliders text-2xl"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        const monthNamesEnglish = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
+        const monthHighlighterColors = ['bg-sky-300/80', 'bg-rose-300/80', 'bg-emerald-300/80', 'bg-amber-300/80', 'bg-purple-300/80', 'bg-orange-300/80', 'bg-teal-300/80', 'bg-yellow-300/80', 'bg-rose-200/80', 'bg-sky-300/80', 'bg-amber-200/80', 'bg-fuchsia-300/80'];
+
+        const categoryIcons = {
+            '居住': { iconHtml: '<i class="fi fi-br-house-chimney-heart"></i>', color: 'text-[#7c8e7e]', hex: '#7c8e7e' },
+            '飲食': { iconHtml: '<i class="fi fi-br-cheeseburger"></i>', color: 'text-[#a68a73]', hex: '#a68a73' },
+            '8510': { iconHtml: '<i class="fi fi-br-car-alt"></i>', color: 'text-[#6a8397]', hex: '#6a8397' },
+            '交通': { iconHtml: '<i class="fi fi-br-cars"></i>', color: 'text-[#778598]', hex: '#778598' },
+            '娛樂': { iconHtml: '<i class="fi fi-bs-ferris-wheel"></i>', color: 'text-[#99849b]', hex: '#99849b' },
+            '醫療': { iconHtml: '<i class="fi fi-br-doctor"></i>', color: 'text-[#b07d85]', hex: '#b07d85' },
+            '雜支': { iconHtml: '<i class="fi fi-bs-cart-shopping-fast"></i>', color: 'text-[#8a817c]', hex: '#8a817c' },
+            '旅遊': { iconHtml: '<i class="fi fi-br-earth-americas"></i>', color: 'text-[#588157]', hex: '#588157' },
+            '帕布': { iconHtml: '<i class="fi fi-br-cat"></i>', color: 'text-[#d4a373]', hex: '#d4a373' },
+            '其他': { iconHtml: '<i class="fi fi-br-supplier-alt"></i>', color: 'text-[#6c757d]', hex: '#6c757d' },
+            '北鼻': { iconHtml: '<i class="fi fi-br-child-head"></i>', color: 'text-[#e0a96d]', hex: '#e0a96d' }
+        };
+
+        function getCategoryIconBadge(category) {
+            const style = categoryIcons[category] || categoryIcons['其他'];
+            return `<div class="w-8 h-8 flex items-center justify-center text-xl flex-shrink-0 ${style.color}" title="${category}">${style.iconHtml}</div>`;
+        }
+
+        function getPayerBadge(payer) {
+            const styles = {
+                'Ning': 'bg-stone-100 text-stone-800 border-stone-300 font-bold',
+                'Hsiang': 'bg-stone-100 text-stone-800 border-stone-300 font-bold',
+                'Ning/2': 'bg-[#f9f0f1] text-[#823a45] border-[#ead8db] font-bold',
+                'Hsiang/2': 'bg-[#f0f1f2] text-[#4a4e51] border-[#d5d8db] font-bold'
+            };
+            const style = styles[payer] || 'bg-stone-100 text-stone-700 border-stone-300';
+            return `<span class="${style} text-xs px-1.5 py-0.5 border font-comic">${payer}</span>`;
+        }
+
+        function getPaymentMethodBadge(method) {
+            return `<span class="bg-stone-100 text-stone-700 border border-stone-300 text-xs px-1.5 py-0.5 font-bold">${method}</span>`;
+        }
+
+        let demoTransactions = [
+            { id: 101, date: '2026-10-28', category: '飲食', item: '晚餐 - 日式拉麵', amount: 640, payer: 'Ning/2', method: '信用卡', note: '信義區', isProxy: false },
+            { id: 102, date: '2026-10-28', category: '帕布', item: '貓咪罐頭與貓砂補貨', amount: 850, payer: 'Ning/2', method: '轉帳', note: '寵物公園', isProxy: false },
+            { id: 103, date: '2026-10-28', category: '雜支', item: '全家超商飲料零食', amount: 125, payer: 'Hsiang', method: '悠遊卡', note: '補貨', isProxy: false },
+            { id: 104, date: '2026-10-27', category: '8510', item: '加油站加滿 95 無鉛汽油', amount: 1280, payer: 'Hsiang/2', method: '信用卡', note: '中油直營', isProxy: false },
+            { id: 105, date: '2026-10-27', category: '飲食', item: '外帶午餐便當 2 份', amount: 240, payer: 'Ning/2', method: '現金', note: '公司附近', isProxy: false }
+        ];
+
+        let transferRecords = [
+            { id: 1, date: '2026-10-28', from: 'Ning', to: 'Hsiang', amount: 21000, note: '10月生活費平帳' }
+        ];
+
+        let defaultBudgets = {
+            '居住': { myLimit: 8000, hubLimit: 8000 },
+            '飲食': { myLimit: 6000, hubLimit: 6000 },
+            '8510': { myLimit: 3000, hubLimit: 3000 },
+            '交通': { myLimit: 2000, hubLimit: 1000 },
+            '娛樂': { myLimit: 3000, hubLimit: 2000 },
+            '醫療': { myLimit: 1500, hubLimit: 1500 },
+            '雜支': { myLimit: 2000, hubLimit: 2000 },
+            '旅遊': { myLimit: 5000, hubLimit: 5000 },
+            '帕布': { myLimit: 3000, hubLimit: 3000 },
+            '其他': { myLimit: 1000, hubLimit: 1000 }
+        };
+
+        // 自動取得今天日期與當前年月
+        const todayObj = new Date();
+        const currentTodayStr = todayObj.toISOString().split('T')[0]; // yyyy-mm-dd
+        let currentTransactions = [...demoTransactions];
+        let currentYearMonth = currentTodayStr.substring(0, 7); // yyyy-mm
+        let reportMode = 'month';
+        let currentReportYear = todayObj.getFullYear();
+        let reportChartInstance = null;
+
+        window.onload = function() {
+            // 載入已儲存的 GAS URL
+            const savedUrl = localStorage.getItem('gas_api_url') || '';
+            const urlInput = document.getElementById('gas-api-url');
+            if (urlInput) urlInput.value = savedUrl;
+
+            // 如果有設定 URL 則自動從雲端載入資料，否則使用預設範例
+            if (savedUrl) {
+                fetchDataFromGAS();
+            } else {
+                renderHome();
+                renderReport();
+                renderSettlement();
+                renderBudgetInputs();
+            }
+        };
+
+        function saveGasUrlAndSync() {
+            const urlInput = document.getElementById('gas-api-url')?.value.trim();
+            if (!urlInput) {
+                showToast('請先輸入 GAS Web App URL');
+                return;
+            }
+            localStorage.setItem('gas_api_url', urlInput);
+            showToast('已儲存網址！開始同步雲端資料...');
+            fetchDataFromGAS();
+        }
+
+        function fetchDataFromGAS() {
+            const apiUrl = localStorage.getItem('gas_api_url') || document.getElementById('gas-api-url')?.value.trim();
+            if (!apiUrl) {
+                showToast('尚未設定 GAS URL');
+                return;
+            }
+
+            const yearStr = currentYearMonth.split('-')[0];
+            const fetchUrl = `${apiUrl}?year=${yearStr}&t=${new Date().getTime()}`;
+
+            showToast('正在與 Google Sheets 同步中...');
+
+            fetch(fetchUrl)
+                .then(res => res.json())
+                .then(res => {
+                    if (res.status === 'success') {
+                        if (res.transactions) {
+                            // 依日期從新到舊排序
+                            currentTransactions = res.transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+                        }
+                        if (res.transfers) transferRecords = res.transfers;
+                        if (res.budgets && Object.keys(res.budgets).length > 0) {
+                            Object.keys(res.budgets).forEach(cat => {
+                                if (defaultBudgets[cat]) {
+                                    defaultBudgets[cat].hubLimit = res.budgets[cat].hubLimit || defaultBudgets[cat].hubLimit;
+                                    defaultBudgets[cat].myLimit = res.budgets[cat].myLimit || defaultBudgets[cat].myLimit;
+                                }
+                            });
+                        }
+                        renderHome();
+                        renderReport();
+                        renderSettlement();
+                        renderBudgetInputs();
+                        showToast('已順利載入 Google Sheets 真實資料！');
+                    } else {
+                        showToast('同步失敗：' + (res.message || '未知錯誤'));
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    showToast('讀取失敗，請確認 URL 是否正確部署為所有人權限');
+                });
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-view').forEach(view => view.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-stone-900');
+                btn.classList.add('text-stone-400');
+            });
+
+            const targetView = document.getElementById(`view-${tabName}`);
+            if (targetView) targetView.classList.remove('hidden');
+
+            const targetBtn = document.getElementById(`nav-btn-${tabName}`);
+            if (targetBtn) {
+                targetBtn.classList.remove('text-stone-400');
+                targetBtn.classList.add('text-stone-900');
+            }
+
+            if (tabName === 'home') renderHome();
+            if (tabName === 'report') renderReport();
+            if (tabName === 'settlement') renderSettlement();
+            if (tabName === 'settings') renderBudgetInputs();
+        }
+
+        function getFilteredTransactions() {
+            return currentTransactions.filter(tx => tx.date.startsWith(currentYearMonth));
+        }
+
+        function toggleProxyStatus(txId) {
+            const tx = currentTransactions.find(t => t.id === txId);
+            if (tx) {
+                tx.isProxy = !tx.isProxy;
+                renderHome();
+                renderReport();
+                renderSettlement();
+            }
+        }
+
+        function getSpends(txList) {
+            const spends = {};
+            Object.keys(defaultBudgets).forEach(cat => {
+                spends[cat] = { mySpent: 0, hubSpent: 0, totalSpent: 0 };
+            });
+
+            txList.forEach(tx => {
+                if (tx.isProxy) return;
+                if (!spends[tx.category]) spends[tx.category] = { mySpent: 0, hubSpent: 0, totalSpent: 0 };
+                const amt = Number(tx.amount) || 0;
+                let myB = 0, hubB = 0;
+
+                if (tx.payer === 'Ning') { myB = amt; }
+                else if (tx.payer === 'Hsiang') { hubB = amt; }
+                else if (tx.payer === 'Ning/2' || tx.payer === 'Hsiang/2') { myB = amt / 2; hubB = amt / 2; }
+
+                spends[tx.category].mySpent += myB;
+                spends[tx.category].hubSpent += hubB;
+                spends[tx.category].totalSpent += (myB + hubB);
+            });
+
+            return spends;
+        }
+
+        function renderHome() {
+            const txList = getFilteredTransactions();
+            const spends = getSpends(txList);
+
+            let totalSpent = 0, hubSpent = 0, mySpent = 0;
+            let totalBudget = 0, hubBudget = 0, myBudget = 0;
+
+            Object.keys(defaultBudgets).forEach(cat => {
+                const b = defaultBudgets[cat];
+                myBudget += b.myLimit;
+                hubBudget += b.hubLimit;
+                totalBudget += (b.myLimit + b.hubLimit);
+
+                const s = spends[cat] || { mySpent: 0, hubSpent: 0, totalSpent: 0 };
+                mySpent += s.mySpent;
+                hubSpent += s.hubSpent;
+                totalSpent += s.totalSpent;
+            });
+
+            const parts = currentYearMonth.split('-');
+            const monthIdx = parseInt(parts[1], 10) - 1;
+
+            document.getElementById('home-year-label').innerText = parts[0];
+            document.getElementById('home-month-label').innerText = monthNamesEnglish[monthIdx] || 'OCTOBER';
+            document.getElementById('home-month-highlight').className = `absolute bottom-0.5 left-0 w-[72%] h-2.5 ${monthHighlighterColors[monthIdx]} rounded-xs -z-0`;
+            
+            // 動態顯示今天的月日 (MM/DD)
+            const todayPart = currentTodayStr.substring(5).replace('-', '/');
+            document.getElementById('home-date-today').innerText = todayPart;
+
+            const myRem = myBudget - mySpent;
+            const hubRem = hubBudget - hubSpent;
+
+            document.getElementById('home-status-my-text').innerText = myRem < 0 ? '超支 🆘' : `剩 $${Math.round(myRem).toLocaleString()}`;
+            document.getElementById('home-status-hub-text').innerText = hubRem < 0 ? '超支 🆘' : `剩 $${Math.round(hubRem).toLocaleString()}`;
+
+            const totalPct = totalBudget > 0 ? Math.min(Math.round((totalSpent / totalBudget) * 100), 999) : 0;
+            document.getElementById('home-total-spent').innerText = `$${Math.round(totalSpent).toLocaleString()}`;
+            document.getElementById('home-total-budget').innerText = `$${Math.round(totalBudget).toLocaleString()}`;
+            document.getElementById('home-total-badge').innerText = `${totalPct}%`;
+            document.getElementById('home-total-bar').style.width = `${Math.min(totalPct, 100)}%`;
+            document.getElementById('home-total-rem-text').innerText = totalBudget - totalSpent >= 0 ? `剩餘 $${Math.round(totalBudget - totalSpent).toLocaleString()}` : `超支 $${Math.round(totalSpent - totalBudget).toLocaleString()}`;
+
+            const hubPct = hubBudget > 0 ? Math.min(Math.round((hubSpent / hubBudget) * 100), 999) : 0;
+            document.getElementById('home-hub-spent').innerText = `$${Math.round(hubSpent).toLocaleString()}`;
+            document.getElementById('home-hub-budget').innerText = `$${Math.round(hubBudget).toLocaleString()}`;
+            document.getElementById('home-hub-badge').innerText = `${hubPct}%`;
+            document.getElementById('home-hub-bar').style.width = `${Math.min(hubPct, 100)}%`;
+            document.getElementById('home-hub-rem-text').innerText = hubBudget - hubSpent >= 0 ? `剩餘 $${Math.round(hubBudget - hubSpent).toLocaleString()}` : `超支 $${Math.round(hubSpent - hubBudget).toLocaleString()}`;
+
+            const myPct = myBudget > 0 ? Math.min(Math.round((mySpent / myBudget) * 100), 999) : 0;
+            document.getElementById('home-my-spent').innerText = `$${Math.round(mySpent).toLocaleString()}`;
+            document.getElementById('home-my-budget').innerText = `$${Math.round(myBudget).toLocaleString()}`;
+            document.getElementById('home-my-badge').innerText = `${myPct}%`;
+            document.getElementById('home-my-bar').style.width = `${Math.min(myPct, 100)}%`;
+            document.getElementById('home-my-rem-text').innerText = myBudget - mySpent >= 0 ? `剩餘 $${Math.round(myBudget - mySpent).toLocaleString()}` : `超支 $${Math.round(mySpent - myBudget).toLocaleString()}`;
+
+            renderDailyTransactionCards();
+        }
+
+        function renderDailyTransactionCards() {
+            const container = document.getElementById('home-daily-cards-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const grouped = {};
+            // 排序資料：確保最新日期的資料顯示在最前面
+            const sortedTx = [...currentTransactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            sortedTx.forEach(tx => {
+                if (!grouped[tx.date]) grouped[tx.date] = [];
+                grouped[tx.date].push(tx);
+            });
+
+            // 僅取出最近 5 個有記帳紀錄的日期
+            const sortedDates = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a)).slice(0, 5);
+
+            if (sortedDates.length === 0) {
+                container.innerHTML = `<div class="p-8 text-center text-stone-400 font-bold bg-white border border-stone-300">本月尚無記帳紀錄</div>`;
+                return;
+            }
+
+            sortedDates.forEach(date => {
+                const daySum = grouped[date].filter(t => !t.isProxy).reduce((sum, item) => sum + item.amount, 0);
+                
+                let dateDisplay = date.replace(/-/g, '/');
+                if (date === currentTodayStr) dateDisplay = `${date.substring(5).replace('-', '/')} 今天`;
+
+                const cardWrapper = document.createElement('div');
+                cardWrapper.className = "relative";
+                
+                let itemsHtml = '';
+                grouped[date].forEach(tx => {
+                    const textStyle = tx.isProxy ? 'line-through text-stone-400' : 'text-stone-900';
+                    const amountStyle = tx.isProxy ? 'line-through text-stone-400' : 'text-stone-900';
+                    // 優先顯示 item 或 subcategory，若無則顯示備註
+                    const displayTitle = tx.item || tx.subcategory || tx.category || '未命名項目';
+                    const displaySub = tx.subcategory && tx.item ? tx.subcategory : (tx.note || '');
+
+                    itemsHtml += `
+                        <div class="p-3 sm:p-4 flex items-center justify-between border-b border-stone-200 last:border-b-0">
+                            <div class="flex items-center space-x-3">
+                                <input type="checkbox" ${tx.isProxy ? 'checked' : ''} onchange="toggleProxyStatus(${tx.id})" class="w-4 h-4 accent-stone-800 cursor-pointer">
+                                ${getCategoryIconBadge(tx.category)}
+                                <div>
+                                    <div class="font-black text-base sm:text-lg ${textStyle}">${displayTitle}</div>
+                                    <div class="text-xs text-stone-400 font-comic mt-0.5">${displaySub}</div>
+                                </div>
+                            </div>
+                            <div class="text-right flex flex-col items-end">
+                                <div class="font-black text-lg sm:text-xl font-comic ${amountStyle}">$${tx.amount.toLocaleString()}</div>
+                                <div class="mt-1 flex items-center space-x-1">
+                                    ${getPayerBadge(tx.payer)}
+                                    ${getPaymentMethodBadge(tx.method || '現金')}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                cardWrapper.innerHTML = `
+                    <div class="absolute inset-0 bg-stone-300/80 translate-x-1 translate-y-1 border border-stone-400/40"></div>
+                    <div class="relative bg-white border border-stone-300 overflow-hidden">
+                        <div class="bg-stone-100 px-4 py-2.5 border-b border-stone-200 flex items-center justify-between">
+                            <span class="font-comic text-base sm:text-lg font-black text-stone-900">${dateDisplay}</span>
+                            <span class="text-xs sm:text-sm font-comic font-bold text-stone-700">小計 $${daySum.toLocaleString()}</span>
+                        </div>
+                        <div class="divide-y divide-stone-200">
+                            ${itemsHtml}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(cardWrapper);
+            });
+        }
+
+        // REPORT
+        function setReportMode(mode) {
+            reportMode = mode;
+            const btnMonth = document.getElementById('report-mode-btn-month');
+            const btnYear = document.getElementById('report-mode-btn-year');
+
+            if (mode === 'month') {
+                btnMonth.className = "py-2 text-center transition bg-white text-stone-900 shadow-xs border border-stone-300 font-extrabold";
+                btnYear.className = "py-2 text-center transition text-stone-500 hover:text-stone-800 font-bold";
+            } else {
+                btnYear.className = "py-2 text-center transition bg-white text-stone-900 shadow-xs border border-stone-300 font-extrabold";
+                btnMonth.className = "py-2 text-center transition text-stone-500 hover:text-stone-800 font-bold";
+            }
+            renderReport();
+        }
+
+        function navigateReportPeriod(delta) {
+            if (reportMode === 'month') {
+                const parts = currentYearMonth.split('-');
+                let year = parseInt(parts[0], 10);
+                let month = parseInt(parts[1], 10) + delta;
+                if (month > 12) { month = 1; year++; }
+                if (month < 1) { month = 12; year--; }
+                currentYearMonth = `${year}-${String(month).padStart(2, '0')}`;
+                currentReportYear = year;
+            } else {
+                currentReportYear += delta;
+            }
+            renderReport();
+        }
+
+        function renderReport() {
+            const periodTitleEl = document.getElementById('report-period-title');
+            const periodHighlightEl = document.getElementById('report-period-highlight');
+            const chartTitleEl = document.getElementById('report-chart-title');
+
+            let txList = [];
+            const parts = currentYearMonth.split('-');
+            const monthIdx = parseInt(parts[1], 10) - 1;
+
+            if (reportMode === 'month') {
+                txList = getFilteredTransactions().filter(t => !t.isProxy);
+                if (periodTitleEl) periodTitleEl.innerText = `${monthNamesEnglish[monthIdx]} ${parts[0]}`;
+                if (periodHighlightEl) {
+                    periodHighlightEl.classList.remove('hidden');
+                    periodHighlightEl.className = `absolute bottom-0.5 left-0 w-[75%] h-3 ${monthHighlighterColors[monthIdx]} rounded-xs -z-0`;
+                }
+                if (chartTitleEl) chartTitleEl.innerText = '當月類別花費占比';
+            } else {
+                const yearStr = String(currentReportYear);
+                txList = currentTransactions.filter(tx => tx.date.startsWith(yearStr) && !tx.isProxy);
+                if (periodTitleEl) periodTitleEl.innerText = `${currentReportYear} 全年總覽`;
+                if (periodHighlightEl) periodHighlightEl.classList.add('hidden');
+                if (chartTitleEl) chartTitleEl.innerText = `${currentReportYear} 全年類別花費占比`;
+            }
+
+            // 【修復 1】：使用 spendsFromList 計算實際個人負擔金額 (mySpent + hubSpent)
+            // 避免整筆面額被重複計算，確保金額 100% 吻合首頁的 $44,780！
+            const spends = spendsFromList(txList);
+            const categoryTotals = {};
+            let totalAmount = 0;
+
+            Object.keys(spends).forEach(cat => {
+                const catSpent = spends[cat].totalSpent || 0;
+                if (catSpent > 0) {
+                    categoryTotals[cat] = catSpent;
+                    totalAmount += catSpent;
+                }
+            });
+
+            document.getElementById('report-total-amount').innerText = `$${Math.round(totalAmount).toLocaleString()}`;
+
+            renderReportChart(categoryTotals);
+            renderPersonBudgetCard('hub', reportMode);
+            renderPersonBudgetCard('me', reportMode);
+        }
+
+        function spendsFromList(txList) {
+            const spends = {};
+            Object.keys(defaultBudgets).forEach(cat => {
+                spends[cat] = { mySpent: 0, hubSpent: 0, totalSpent: 0 };
+            });
+
+            txList.forEach(tx => {
+                if (tx.isProxy) return;
+                if (!spends[tx.category]) spends[tx.category] = { mySpent: 0, hubSpent: 0, totalSpent: 0 };
+                const amt = Number(tx.amount) || 0;
+                let myB = 0, hubB = 0;
+
+                if (tx.payer === 'Ning') { myB = amt; }
+                else if (tx.payer === 'Hsiang') { hubB = amt; }
+                else if (tx.payer === 'Ning/2' || tx.payer === 'Hsiang/2') { myB = amt / 2; hubB = amt / 2; }
+
+                spends[tx.category].mySpent += myB;
+                spends[tx.category].hubSpent += hubB;
+                spends[tx.category].totalSpent += (myB + hubB);
+            });
+
+            return spends;
+        }
+
+        function renderPersonBudgetCard(person, mode) {
+            const isYear = mode === 'year';
+            const multiplier = isYear ? 12 : 1;
+            const txScope = isYear 
+                ? currentTransactions.filter(tx => tx.date.startsWith(String(currentReportYear)) && !tx.isProxy)
+                : getFilteredTransactions().filter(t => !t.isProxy);
+
+            const spends = spendsFromList(txScope);
+
+            let targetBudget = 0;
+            let totalSpent = 0;
+
+            Object.keys(defaultBudgets).forEach(cat => {
+                const b = defaultBudgets[cat];
+                const s = spends[cat] || { mySpent: 0, hubSpent: 0 };
+                targetBudget += (person === 'me' ? b.myLimit : b.hubLimit) * multiplier;
+                totalSpent += (person === 'me' ? s.mySpent : s.hubSpent);
+            });
+
+            const pct = targetBudget > 0 ? Math.min(Math.round((totalSpent / targetBudget) * 100), 999) : 0;
+
+            document.getElementById(`${person}-card-spent`).innerText = `$${Math.round(totalSpent).toLocaleString()}`;
+            document.getElementById(`${person}-card-target`).innerText = `$${Math.round(targetBudget).toLocaleString()}`;
+            document.getElementById(`${person}-card-pct`).innerText = `${pct}%`;
+            document.getElementById(`${person}-card-bar`).style.width = `${Math.min(pct, 100)}%`;
+
+            const container = document.getElementById(`${person}-category-progress`);
+            if (container) {
+                container.innerHTML = '';
+                Object.keys(defaultBudgets).forEach(cat => {
+                    const limit = (person === 'me' ? defaultBudgets[cat].myLimit : defaultBudgets[cat].hubLimit) * multiplier;
+                    const spent = person === 'me' ? (spends[cat]?.mySpent || 0) : (spends[cat]?.hubSpent || 0);
+                    const catPct = limit > 0 ? Math.min(Math.round((spent / limit) * 100), 999) : 0;
+
+                    const row = document.createElement('div');
+                    row.className = "flex items-center justify-between text-sm sm:text-base font-bold";
+                    row.innerHTML = `
+                        <span class="text-stone-800 font-bold">${cat}</span>
+                        <div class="flex items-center space-x-2">
+                            <span class="font-comic text-stone-500 font-semibold">$${Math.round(spent)} / $${limit}</span>
+                            <span class="font-comic font-black w-9 text-right ${catPct >= 100 ? 'text-[#823a45]' : 'text-stone-900'}">${catPct}%</span>
+                        </div>
+                    `;
+                    container.appendChild(row);
+                });
+            }
+        }
+
+        function renderReportChart(categoryTotals) {
+            const ctx = document.getElementById('reportCategoryChart')?.getContext('2d');
+            if (!ctx) return;
+
+            const labels = Object.keys(categoryTotals);
+            const data = Object.values(categoryTotals);
+            const colors = labels.map(cat => categoryIcons[cat]?.hex || '#6c757d');
+
+            if (reportChartInstance) reportChartInstance.destroy();
+
+            reportChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels.length > 0 ? labels : ['無資料'],
+                    datasets: [{
+                        data: data.length > 0 ? data : [1],
+                        backgroundColor: colors.length > 0 ? colors : ['#e0e0e0'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } },
+                    cutout: '40%'
+                }
+            });
+        }
+
+        // SETTLEMENT
+        function renderSettlement() {
+            let statNing2 = 0, statHsiang2 = 0;
+            const currentYearStr = currentYearMonth.split('-')[0];
+            
+            // 【修復 2】：自動取得全年度（2026年初至今）所有非代購消費，計算雙方各自累積代墊平帳金額
+            const yearTxList = currentTransactions.filter(t => t.date && String(t.date).startsWith(currentYearStr) && !t.isProxy);
+
+            yearTxList.forEach(tx => {
+                if (tx.payer === 'Ning/2') statNing2 += Number(tx.amount) || 0;
+                else if (tx.payer === 'Hsiang/2') statHsiang2 += Number(tx.amount) || 0;
+            });
+
+            const husbandOwesMe = statNing2 / 2;
+            const iOweHusband = statHsiang2 / 2;
+            const netExpenseDiff = iOweHusband - husbandOwesMe;
+
+            // 自動計算全年度至今累積的所有轉帳金額
+            const yearTransfers = transferRecords.filter(tf => tf.date && String(tf.date).startsWith(currentYearStr));
+
+            let ningTransferredTotal = 0;
+            let hsiangTransferredTotal = 0;
+
+            yearTransfers.forEach(tf => {
+                const amt = Number(tf.amount) || 0;
+                if (tf.from === 'Ning' && tf.to === 'Hsiang') {
+                    ningTransferredTotal += amt;
+                } else if (tf.from === 'Hsiang' && tf.to === 'Ning') {
+                    hsiangTransferredTotal += amt;
+                }
+            });
+
+            // 更新轉帳統計小卡（顯示 2026 全年累積轉帳）
+            const statNingEl = document.getElementById('stat-tf-ning');
+            const statHsiangEl = document.getElementById('stat-tf-hsiang');
+            if (statNingEl) statNingEl.innerText = `$${Math.round(ningTransferredTotal).toLocaleString()}`;
+            if (statHsiangEl) statHsiangEl.innerText = `$${Math.round(hsiangTransferredTotal).toLocaleString()}`;
+
+            // 淨對帳平帳金額算式：(全年度累積Ning轉出 - 全年度累積Hsiang轉出) - 全年度累積淨消費平帳金額
+            const netTransferBalance = ningTransferredTotal - hsiangTransferredTotal;
+            const finalNetBalance = netTransferBalance - netExpenseDiff;
+
+            const heroLabelEl = document.getElementById('settle-hero-label');
+            const heroAmountEl = document.getElementById('settle-hero-amount');
+
+            if (finalNetBalance < 0) {
+                const oweAmount = Math.abs(finalNetBalance);
+                heroLabelEl.innerHTML = `<span class="text-[#823a45] font-black">累積至今：記得轉給 Hsiang</span>`;
+                heroAmountEl.innerText = `$${Math.round(oweAmount).toLocaleString()}`;
+                heroAmountEl.className = "text-5xl sm:text-6xl font-black font-comic tracking-tight text-[#823a45]";
+            } else if (finalNetBalance > 0) {
+                heroLabelEl.innerHTML = `<span class="text-[#4a4e51] font-black">累積至今：記得轉給 Ning</span>`;
+                heroAmountEl.innerText = `$${Math.round(finalNetBalance).toLocaleString()}`;
+                heroAmountEl.className = "text-5xl sm:text-6xl font-black font-comic tracking-tight text-stone-900";
+            } else {
+                heroLabelEl.innerHTML = `<span class="text-stone-700 font-black">✨ 全年完全平帳</span>`;
+                heroAmountEl.innerText = `$0`;
+                heroAmountEl.className = "text-5xl sm:text-6xl font-black font-comic tracking-tight text-stone-800";
+            }
+
+            renderTransferTable();
+        }
+
+        function renderTransferTable() {
+            const tbody = document.getElementById('transfer-table-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            if (transferRecords.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-stone-400 font-bold">尚無轉帳紀錄</td></tr>`;
+                return;
+            }
+
+            transferRecords.forEach(tf => {
+                const formattedDate = tf.date.replace(/-/g, '/');
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-stone-50 transition";
+                tr.innerHTML = `
+                    <td class="py-3 px-3.5 font-comic font-bold text-stone-700 whitespace-nowrap">${formattedDate}</td>
+                    <td class="py-3 px-3.5 font-bold text-stone-900 whitespace-nowrap">${tf.from}</td>
+                    <td class="py-3 px-3.5 font-bold text-stone-500 text-sm whitespace-nowrap">${tf.note || '-'}</td>
+                    <td class="py-3 px-3.5 font-comic font-black text-right text-stone-900 whitespace-nowrap">$${tf.amount.toLocaleString()}</td>
+                    <td class="py-3 px-3.5 text-center whitespace-nowrap">
+                        <button onclick="deleteTransferRecord(${tf.id})" class="text-stone-400 hover:text-[#823a45] transition p-1" title="刪除">
+                            <i class="fa-solid fa-trash-can text-base"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function toggleTransferModal() {
+            const modal = document.getElementById('transfer-modal');
+            if (!modal) return;
+            modal.classList.toggle('hidden');
+            if (!modal.classList.contains('hidden')) {
+                document.getElementById('tf-date').value = currentYearMonth + '-28';
+                document.getElementById('tf-amount').value = '';
+                document.getElementById('tf-note').value = '';
+            }
+        }
+
+        function addTransferRecord() {
+            const date = document.getElementById('tf-date').value;
+            const from = document.getElementById('tf-from').value;
+            const to = document.getElementById('tf-to').value;
+            const amount = parseFloat(document.getElementById('tf-amount').value);
+            const note = (document.getElementById('tf-note').value || '').trim();
+
+            if (!date || isNaN(amount) || amount <= 0) {
+                showToast('請填寫有效的日期與金額');
+                return;
+            }
+
+            const newId = transferRecords.length > 0 ? Math.max(...transferRecords.map(r => r.id)) + 1 : 1;
+            transferRecords.push({ id: newId, date, from, to, amount, note });
+            
+            toggleTransferModal();
+            renderSettlement();
+            showToast('已成功登記轉帳紀錄！');
+        }
+
+        function deleteTransferRecord(id) {
+            transferRecords = transferRecords.filter(r => r.id !== id);
+            renderSettlement();
+            showToast('已刪除轉帳紀錄');
+        }
+
+        // SETTINGS
+        function renderBudgetInputs() {
+            const tbody = document.getElementById('budget-settings-tbody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            Object.keys(defaultBudgets).forEach(cat => {
+                const b = defaultBudgets[cat];
+                const style = categoryIcons[cat] || categoryIcons['其他'];
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-stone-50 transition";
+                tr.innerHTML = `
+                    <td class="py-3.5 px-4 font-black text-lg text-stone-900 whitespace-nowrap">
+                        <span class="inline-flex items-center space-x-2">
+                            <span class="${style.color} text-xl">${style.iconHtml}</span>
+                            <span>${cat}</span>
+                        </span>
+                    </td>
+                    <td class="py-3.5 px-4">
+                        <input type="number" id="budget-hub-${cat}" value="${b.hubLimit}" class="w-full max-w-[120px] bg-stone-50 border border-stone-300 px-3 py-1.5 font-comic font-bold text-base">
+                    </td>
+                    <td class="py-3.5 px-4">
+                        <input type="number" id="budget-my-${cat}" value="${b.myLimit}" class="w-full max-w-[120px] bg-stone-50 border border-stone-300 px-3 py-1.5 font-comic font-bold text-base">
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function saveBudgets() {
+            Object.keys(defaultBudgets).forEach(cat => {
+                const hubVal = parseFloat(document.getElementById(`budget-hub-${cat}`)?.value);
+                const myVal = parseFloat(document.getElementById(`budget-my-${cat}`)?.value);
+                if (!isNaN(hubVal)) defaultBudgets[cat].hubLimit = hubVal;
+                if (!isNaN(myVal)) defaultBudgets[cat].myLimit = myVal;
+            });
+            renderHome();
+            renderReport();
+            showToast('預算設定已更新！');
+        }
+
+        // MODALS
+        function openAddModal() {
+            document.getElementById('add-tx-date').value = currentYearMonth + '-28';
+            document.getElementById('add-tx-modal')?.classList.remove('hidden');
+        }
+
+        function closeAddModal() {
+            document.getElementById('add-tx-modal')?.classList.add('hidden');
+        }
+
+        function saveNewTransaction() {
+            const date = document.getElementById('add-tx-date').value;
+            const item = document.getElementById('add-tx-item').value.trim();
+            const amount = parseFloat(document.getElementById('add-tx-amount').value);
+            const category = document.getElementById('add-tx-category').value;
+            const payer = document.getElementById('add-tx-payer').value;
+
+            if (!date || !item || isNaN(amount) || amount <= 0) {
+                showToast('請填寫完整資訊');
+                return;
+            }
+
+            const newId = currentTransactions.length > 0 ? Math.max(...currentTransactions.map(t => t.id)) + 1 : 101;
+            currentTransactions.unshift({
+                id: newId, date, category, item: item, subcategory: item, amount, payer, method: '信用卡', note: '', isProxy: false
+            });
+
+            closeAddModal();
+            renderHome();
+            renderReport();
+            renderSettlement();
+            showToast('已新增一筆記帳！');
+        }
+
+        function toggleMonthlyDetailModal() {
+            const modal = document.getElementById('monthly-detail-modal');
+            if (!modal) return;
+            modal.classList.toggle('hidden');
+            if (!modal.classList.contains('hidden')) {
+                renderMonthlyDetailList();
+            }
+        }
+
+        function renderMonthlyDetailList() {
+            const tbody = document.getElementById('md-table-body');
+            const searchVal = (document.getElementById('md-search-input')?.value || '').trim().toLowerCase();
+            const payerFilter = document.getElementById('md-payer-filter')?.value || 'ALL';
+
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            const monthTxList = getFilteredTransactions();
+            const filtered = monthTxList.filter(tx => {
+                const itemStr = (tx.item || tx.subcategory || '').toLowerCase();
+                const matchSearch = itemStr.includes(searchVal) || tx.category.toLowerCase().includes(searchVal);
+                const matchPayer = payerFilter === 'ALL' || tx.payer === payerFilter;
+                return matchSearch && matchPayer;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-stone-400 font-bold">查無紀錄</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(tx => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-stone-50 transition";
+                const shortDate = tx.date.substring(5).replace('-', '/');
+                const displayTitle = tx.item || tx.subcategory || tx.category || '未命名項目';
+
+                tr.innerHTML = `
+                    <td class="py-2.5 px-3 font-comic font-bold text-stone-700 whitespace-nowrap">${shortDate}</td>
+                    <td class="py-2.5 px-3 whitespace-nowrap">
+                        <div class="text-stone-900 font-black">${displayTitle}</div>
+                        <div class="text-xs text-stone-500">${tx.category}</div>
+                    </td>
+                    <td class="py-2.5 px-3 font-comic font-black text-right text-stone-900 whitespace-nowrap">$${tx.amount.toLocaleString()}</td>
+                    <td class="py-2.5 px-3 text-center whitespace-nowrap">${getPayerBadge(tx.payer)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            const toast = document.createElement('div');
+            toast.className = "bg-stone-900 text-stone-100 text-sm font-bold px-4 py-3 border border-stone-700 shadow-xl flex items-center justify-between transition-all duration-300 opacity-100";
+            toast.innerHTML = `<span>${message}</span><i class="fa-solid fa-check text-[#c2d1b8] ml-3"></i>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 2500);
+        }
+
+        function generateShareableUrl() { 
+            const urlInput = document.getElementById('gas-api-url')?.value.trim();
+            if (urlInput) {
+                navigator.clipboard.writeText(urlInput);
+                showToast('已複製同步 URL！'); 
+            } else {
+                showToast('請先填寫 URL');
+            }
+        }
+
+        function testConnection() { 
+            fetchDataFromGAS(); 
+        }
+    </script>
+</body>
+</html>
