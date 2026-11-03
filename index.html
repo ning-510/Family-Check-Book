@@ -161,9 +161,6 @@
                     <i class="fa-regular fa-clock mr-2 text-stone-600"></i>近期記帳紀錄
                 </h3>
                 <div class="flex items-center space-x-2">
-                    <button onclick="openAddModal()" class="w-9 h-9 bg-stone-800 hover:bg-stone-700 text-white flex items-center justify-center transition active:scale-95 shadow-2xs" title="記一筆">
-                        <i class="fa-solid fa-plus text-base"></i>
-                    </button>
                     <button onclick="toggleMonthlyDetailModal()" class="w-9 h-9 bg-stone-200 hover:bg-stone-300 text-stone-800 border border-stone-300 flex items-center justify-center transition active:scale-95 shadow-2xs" title="當月完整明細">
                         <i class="fa-solid fa-list-check text-base"></i>
                     </button>
@@ -506,64 +503,6 @@
         </div>
     </div>
 
-    <!-- Modal: Quick Add Transaction -->
-    <div id="add-tx-modal" class="fixed inset-0 bg-stone-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white p-6 max-w-sm w-full border border-stone-400 shadow-xl space-y-4">
-            <div class="flex justify-between items-center border-b border-stone-200 pb-3">
-                <h3 class="font-black text-stone-900 text-lg flex items-center">
-                    <i class="fa-solid fa-pen-to-square text-stone-700 mr-2"></i>快速新增記帳
-                </h3>
-                <button onclick="closeAddModal()" class="text-stone-400 hover:text-stone-700">
-                    <i class="fa-solid fa-xmark text-xl"></i>
-                </button>
-            </div>
-            <div class="space-y-3 text-base">
-                <div>
-                    <label class="block font-bold text-stone-800 mb-1">日期</label>
-                    <input type="date" id="add-tx-date" class="w-full bg-stone-50 border border-stone-300 p-2 font-comic">
-                </div>
-                <div>
-                    <label class="block font-bold text-stone-800 mb-1">品名 / 項目</label>
-                    <input type="text" id="add-tx-item" placeholder="例如：全聯採買" class="w-full bg-stone-50 border border-stone-300 p-2 font-bold">
-                </div>
-                <div>
-                    <label class="block font-bold text-stone-800 mb-1">金額 (NT$)</label>
-                    <input type="number" id="add-tx-amount" placeholder="500" class="w-full bg-stone-50 border border-stone-300 p-2 font-comic font-black text-lg">
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block font-bold text-stone-800 mb-1">分類</label>
-                        <select id="add-tx-category" class="w-full bg-stone-50 border border-stone-300 p-2 font-bold">
-                            <option value="居住">居住</option>
-                            <option value="飲食">飲食</option>
-                            <option value="8510">8510</option>
-                            <option value="交通">交通</option>
-                            <option value="娛樂">娛樂</option>
-                            <option value="醫療">醫療</option>
-                            <option value="雜支">雜支</option>
-                            <option value="旅遊">旅遊</option>
-                            <option value="帕布">帕布</option>
-                            <option value="其他">其他</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block font-bold text-stone-800 mb-1">付款人</label>
-                        <select id="add-tx-payer" class="w-full bg-stone-50 border border-stone-300 p-2 font-bold">
-                            <option value="Ning/2">Ning/2</option>
-                            <option value="Hsiang/2">Hsiang/2</option>
-                            <option value="Ning">Ning</option>
-                            <option value="Hsiang">Hsiang</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div class="flex space-x-3 pt-2">
-                <button onclick="closeAddModal()" class="w-1/2 bg-stone-100 border border-stone-300 text-stone-800 py-2.5 font-bold">取消</button>
-                <button onclick="saveNewTransaction()" class="w-1/2 bg-stone-800 text-white py-2.5 font-bold hover:bg-stone-700">儲存</button>
-            </div>
-        </div>
-    </div>
-
     <!-- MOBILE BOTTOM NAVIGATION BAR -->
     <nav class="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-stone-300 max-w-md sm:max-w-xl md:max-w-4xl lg:max-w-6xl mx-auto px-3 py-2.5">
         <div class="grid grid-cols-4 gap-1 text-center">
@@ -656,12 +595,12 @@
         let reportChartInstance = null;
 
         window.onload = function() {
-            // 載入已儲存的 GAS URL
+            // 載入使用者自行儲存的 GAS URL
             const savedUrl = localStorage.getItem('gas_api_url') || '';
             const urlInput = document.getElementById('gas-api-url');
             if (urlInput) urlInput.value = savedUrl;
 
-            // 如果有設定 URL 則自動從雲端載入資料，否則使用預設範例
+            // 若有填寫 URL 則自動同步，否則載入範例預覽資料
             if (savedUrl) {
                 fetchDataFromGAS();
             } else {
@@ -979,8 +918,8 @@
                 if (chartTitleEl) chartTitleEl.innerText = `${currentReportYear} 全年類別花費占比`;
             }
 
-            // 【修復 1】：使用 spendsFromList 計算實際個人負擔金額 (mySpent + hubSpent)
-            // 避免整筆面額被重複計算，確保金額 100% 吻合首頁的 $44,780！
+            // 使用 spendsFromList 計算各自實際負擔金額 (mySpent + hubSpent)
+            // 避免整筆面額被雙倍重複計算，確保金額與首頁 $44,780 完美吻合！
             const spends = spendsFromList(txList);
             const categoryTotals = {};
             let totalAmount = 0;
@@ -1105,10 +1044,9 @@
         // SETTLEMENT
         function renderSettlement() {
             let statNing2 = 0, statHsiang2 = 0;
-            const currentYearStr = currentYearMonth.split('-')[0];
             
-            // 【修復 2】：自動取得全年度（2026年初至今）所有非代購消費，計算雙方各自累積代墊平帳金額
-            const yearTxList = currentTransactions.filter(t => t.date && String(t.date).startsWith(currentYearStr) && !t.isProxy);
+            // 從 2026-01-01 起累計所有非代購消費平帳（跨月不間斷）
+            const yearTxList = currentTransactions.filter(t => t.date && t.date >= '2026-01-01' && !t.isProxy);
 
             yearTxList.forEach(tx => {
                 if (tx.payer === 'Ning/2') statNing2 += Number(tx.amount) || 0;
@@ -1119,8 +1057,8 @@
             const iOweHusband = statHsiang2 / 2;
             const netExpenseDiff = iOweHusband - husbandOwesMe;
 
-            // 自動計算全年度至今累積的所有轉帳金額
-            const yearTransfers = transferRecords.filter(tf => tf.date && String(tf.date).startsWith(currentYearStr));
+            // 從 2026-01-01 起累計所有轉帳紀錄（跨月不間斷）
+            const yearTransfers = transferRecords.filter(tf => tf.date && tf.date >= '2026-01-01');
 
             let ningTransferredTotal = 0;
             let hsiangTransferredTotal = 0;
@@ -1134,13 +1072,13 @@
                 }
             });
 
-            // 更新轉帳統計小卡（顯示 2026 全年累積轉帳）
+            // 更新匯款小卡金額
             const statNingEl = document.getElementById('stat-tf-ning');
             const statHsiangEl = document.getElementById('stat-tf-hsiang');
             if (statNingEl) statNingEl.innerText = `$${Math.round(ningTransferredTotal).toLocaleString()}`;
             if (statHsiangEl) statHsiangEl.innerText = `$${Math.round(hsiangTransferredTotal).toLocaleString()}`;
 
-            // 淨對帳平帳金額算式：(全年度累積Ning轉出 - 全年度累積Hsiang轉出) - 全年度累積淨消費平帳金額
+            // 淨對帳金額計算
             const netTransferBalance = ningTransferredTotal - hsiangTransferredTotal;
             const finalNetBalance = netTransferBalance - netExpenseDiff;
 
@@ -1149,15 +1087,15 @@
 
             if (finalNetBalance < 0) {
                 const oweAmount = Math.abs(finalNetBalance);
-                heroLabelEl.innerHTML = `<span class="text-[#823a45] font-black">累積至今：記得轉給 Hsiang</span>`;
+                heroLabelEl.innerHTML = `<span class="text-[#823a45] font-black">2026 累積至今：記得轉給 Hsiang</span>`;
                 heroAmountEl.innerText = `$${Math.round(oweAmount).toLocaleString()}`;
                 heroAmountEl.className = "text-5xl sm:text-6xl font-black font-comic tracking-tight text-[#823a45]";
             } else if (finalNetBalance > 0) {
-                heroLabelEl.innerHTML = `<span class="text-[#4a4e51] font-black">累積至今：記得轉給 Ning</span>`;
+                heroLabelEl.innerHTML = `<span class="text-[#4a4e51] font-black">2026 累積至今：記得轉給 Ning</span>`;
                 heroAmountEl.innerText = `$${Math.round(finalNetBalance).toLocaleString()}`;
                 heroAmountEl.className = "text-5xl sm:text-6xl font-black font-comic tracking-tight text-stone-900";
             } else {
-                heroLabelEl.innerHTML = `<span class="text-stone-700 font-black">✨ 全年完全平帳</span>`;
+                heroLabelEl.innerHTML = `<span class="text-stone-700 font-black">✨ 2026 至今完全平帳</span>`;
                 heroAmountEl.innerText = `$0`;
                 heroAmountEl.className = "text-5xl sm:text-6xl font-black font-comic tracking-tight text-stone-800";
             }
@@ -1170,12 +1108,16 @@
             if (!tbody) return;
             tbody.innerHTML = '';
 
-            if (transferRecords.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-stone-400 font-bold">尚無轉帳紀錄</td></tr>`;
+            // 顯示 2026-01-01 以後的所有轉帳紀錄
+            const cumulativeTransfers = transferRecords.filter(tf => tf.date && tf.date >= '2026-01-01')
+                                                        .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            if (cumulativeTransfers.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-stone-400 font-bold">自 2026/01/01 起尚無轉帳紀錄</td></tr>`;
                 return;
             }
 
-            transferRecords.forEach(tf => {
+            cumulativeTransfers.forEach(tf => {
                 const formattedDate = tf.date.replace(/-/g, '/');
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-stone-50 transition";
@@ -1199,7 +1141,8 @@
             if (!modal) return;
             modal.classList.toggle('hidden');
             if (!modal.classList.contains('hidden')) {
-                document.getElementById('tf-date').value = currentYearMonth + '-28';
+                // 自動預設為今天的真實日期（不再寫死 28 號）
+                document.getElementById('tf-date').value = currentTodayStr;
                 document.getElementById('tf-amount').value = '';
                 document.getElementById('tf-note').value = '';
             }
@@ -1217,18 +1160,68 @@
                 return;
             }
 
-            const newId = transferRecords.length > 0 ? Math.max(...transferRecords.map(r => r.id)) + 1 : 1;
-            transferRecords.push({ id: newId, date, from, to, amount, note });
+            const apiUrl = localStorage.getItem('gas_api_url');
+            const transferData = { date, from, to, amount, note };
+
+            // 若有設定 GAS URL，發送 POST 請求寫入 Google Sheets
+            if (apiUrl) {
+                showToast('正在寫入 Google Sheets 雲端...');
+                fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'addTransfer', transfer: transferData })
+                })
+                .then(res => res.json())
+                .then(res => {
+                    if (res.status === 'success') {
+                        showToast('已成功同步寫入 Google Sheets！');
+                        fetchDataFromGAS(); // 重新載入最新雲端數據
+                    } else {
+                        showToast('寫入失敗：' + (res.message || '未知錯誤'));
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    showToast('雲端同步失敗，已儲存於本機');
+                });
+            } else {
+                const newId = transferRecords.length > 0 ? Math.max(...transferRecords.map(r => r.id)) + 1 : new Date().getTime();
+                transferRecords.push({ id: newId, date, from, to, amount, note });
+                showToast('已成功登記轉帳紀錄（未連線雲端）');
+            }
             
             toggleTransferModal();
             renderSettlement();
-            showToast('已成功登記轉帳紀錄！');
         }
 
         function deleteTransferRecord(id) {
-            transferRecords = transferRecords.filter(r => r.id !== id);
-            renderSettlement();
-            showToast('已刪除轉帳紀錄');
+            const apiUrl = localStorage.getItem('gas_api_url');
+
+            if (apiUrl) {
+                showToast('正在從雲端刪除...');
+                fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'deleteTransfer', id: id })
+                })
+                .then(res => res.json())
+                .then(res => {
+                    if (res.status === 'success') {
+                        showToast('已從雲端成功刪除轉帳紀錄！');
+                        fetchDataFromGAS(); // 重新載入最新雲端數據
+                    } else {
+                        showToast('刪除失敗：' + (res.message || '未知錯誤'));
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    showToast('網路連線失敗，刪除無法同步');
+                });
+            } else {
+                transferRecords = transferRecords.filter(r => r.id !== id);
+                renderSettlement();
+                showToast('已刪除轉帳紀錄');
+            }
         }
 
         // SETTINGS
@@ -1268,45 +1261,26 @@
                 if (!isNaN(hubVal)) defaultBudgets[cat].hubLimit = hubVal;
                 if (!isNaN(myVal)) defaultBudgets[cat].myLimit = myVal;
             });
+
+            const apiUrl = localStorage.getItem('gas_api_url');
+            if (apiUrl) {
+                fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({
+                        action: 'saveBudgets',
+                        year: currentYearMonth.split('-')[0],
+                        budgets: defaultBudgets
+                    })
+                });
+            }
+
             renderHome();
             renderReport();
             showToast('預算設定已更新！');
         }
 
         // MODALS
-        function openAddModal() {
-            document.getElementById('add-tx-date').value = currentYearMonth + '-28';
-            document.getElementById('add-tx-modal')?.classList.remove('hidden');
-        }
-
-        function closeAddModal() {
-            document.getElementById('add-tx-modal')?.classList.add('hidden');
-        }
-
-        function saveNewTransaction() {
-            const date = document.getElementById('add-tx-date').value;
-            const item = document.getElementById('add-tx-item').value.trim();
-            const amount = parseFloat(document.getElementById('add-tx-amount').value);
-            const category = document.getElementById('add-tx-category').value;
-            const payer = document.getElementById('add-tx-payer').value;
-
-            if (!date || !item || isNaN(amount) || amount <= 0) {
-                showToast('請填寫完整資訊');
-                return;
-            }
-
-            const newId = currentTransactions.length > 0 ? Math.max(...currentTransactions.map(t => t.id)) + 1 : 101;
-            currentTransactions.unshift({
-                id: newId, date, category, item: item, subcategory: item, amount, payer, method: '信用卡', note: '', isProxy: false
-            });
-
-            closeAddModal();
-            renderHome();
-            renderReport();
-            renderSettlement();
-            showToast('已新增一筆記帳！');
-        }
-
         function toggleMonthlyDetailModal() {
             const modal = document.getElementById('monthly-detail-modal');
             if (!modal) return;
