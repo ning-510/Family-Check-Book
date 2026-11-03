@@ -72,7 +72,7 @@
                 <div class="absolute inset-0 bg-stone-300/80 translate-x-1 translate-y-1 border border-stone-400/40"></div>
                 <div class="relative bg-white border border-stone-300 flex items-stretch divide-x divide-stone-200">
                     <div class="bg-stone-100 px-3.5 py-2.5 flex items-center justify-center font-comic font-black text-stone-900 text-lg sm:text-xl flex-shrink-0" id="home-date-today">
-                        10/28
+                        11/03
                     </div>
                     <div class="flex-grow grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-stone-200 p-2 gap-1.5">
                         <div class="px-2.5 py-1.5 flex items-center justify-between min-w-0">
@@ -446,7 +446,7 @@
                 </div>
                 <div>
                     <label class="block font-bold text-stone-800 mb-1">備註</label>
-                    <input type="text" id="tf-note" placeholder="例如：10月平帳款" class="w-full bg-stone-50 border border-stone-300 p-2.5 font-bold text-base">
+                    <input type="text" id="tf-note" placeholder="例如：平帳款" class="w-full bg-stone-50 border border-stone-300 p-2.5 font-bold text-base">
                 </div>
             </div>
             <div class="flex space-x-3 pt-2">
@@ -595,12 +595,12 @@
         let reportChartInstance = null;
 
         window.onload = function() {
-            // 載入使用者自行儲存的 GAS URL
+            // 載入已儲存的 GAS URL
             const savedUrl = localStorage.getItem('gas_api_url') || '';
             const urlInput = document.getElementById('gas-api-url');
             if (urlInput) urlInput.value = savedUrl;
 
-            // 若有填寫 URL 則自動同步，否則載入範例預覽資料
+            // 如果有設定 URL 則自動從雲端載入資料，否則使用預設範例
             if (savedUrl) {
                 fetchDataFromGAS();
             } else {
@@ -694,11 +694,30 @@
 
         function toggleProxyStatus(txId) {
             const tx = currentTransactions.find(t => t.id === txId);
-            if (tx) {
-                tx.isProxy = !tx.isProxy;
-                renderHome();
-                renderReport();
-                renderSettlement();
+            if (!tx) return;
+
+            // 1. 本地狀態即時切換與畫面重算
+            tx.isProxy = !tx.isProxy;
+            renderHome();
+            renderReport();
+            renderSettlement();
+
+            // 2. 發送 POST 請求更新 Google Sheets 上的代購狀態 (H欄)
+            const apiUrl = localStorage.getItem('gas_api_url') || document.getElementById('gas-api-url')?.value.trim();
+            if (apiUrl) {
+                fetch(apiUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'toggleProxy',
+                        id: tx.id,
+                        date: tx.date,
+                        isProxy: tx.isProxy
+                    })
+                })
+                .then(() => showToast(tx.isProxy ? '已標記為代購（已扣除該筆花費）' : '已取消代購標記（已計入家庭花費）'))
+                .catch(err => console.error(err));
             }
         }
 
@@ -709,14 +728,24 @@
             });
 
             txList.forEach(tx => {
+                // 若勾選代購，直接不納入任何花費計算
                 if (tx.isProxy) return;
                 if (!spends[tx.category]) spends[tx.category] = { mySpent: 0, hubSpent: 0, totalSpent: 0 };
                 const amt = Number(tx.amount) || 0;
                 let myB = 0, hubB = 0;
 
-                if (tx.payer === 'Ning') { myB = amt; }
-                else if (tx.payer === 'Hsiang') { hubB = amt; }
-                else if (tx.payer === 'Ning/2' || tx.payer === 'Hsiang/2') { myB = amt / 2; hubB = amt / 2; }
+                // 依據 6 種付款人精準計算個人實際承擔花費
+                if (tx.payer === 'Ning' || tx.payer === '翔墊') { 
+                    // 翔墊：Hsiang先付但這是Ning的花費，所以歸入 Ning 花費 100%
+                    myB = amt; 
+                } else if (tx.payer === 'Hsiang' || tx.payer === '甯墊') { 
+                    // 甯墊：Ning先付但這是Hsiang的花費，所以歸入 Hsiang 花費 100%
+                    hubB = amt; 
+                } else if (tx.payer === 'Ning/2' || tx.payer === 'Hsiang/2') { 
+                    // 平分：各自負擔 50%
+                    myB = amt / 2; 
+                    hubB = amt / 2; 
+                }
 
                 spends[tx.category].mySpent += myB;
                 spends[tx.category].hubSpent += hubB;
@@ -821,7 +850,6 @@
                 grouped[date].forEach(tx => {
                     const textStyle = tx.isProxy ? 'line-through text-stone-400' : 'text-stone-900';
                     const amountStyle = tx.isProxy ? 'line-through text-stone-400' : 'text-stone-900';
-                    // 優先顯示 item 或 subcategory，若無則顯示備註
                     const displayTitle = tx.item || tx.subcategory || tx.category || '未命名項目';
                     const displaySub = tx.subcategory && tx.item ? tx.subcategory : (tx.note || '');
 
@@ -918,14 +946,12 @@
                 if (chartTitleEl) chartTitleEl.innerText = `${currentReportYear} 全年類別花費占比`;
             }
 
-            // 使用 spendsFromList 計算各自實際負擔金額 (mySpent + hubSpent)
-            // 避免整筆面額被雙倍重複計算，確保金額與首頁 $44,780 完美吻合！
-            const spends = spendsFromList(txList);
             const categoryTotals = {};
             let totalAmount = 0;
 
-            Object.keys(spends).forEach(cat => {
-                const catSpent = spends[cat].totalSpent || 0;
+            const categorySpends = spendsFromList(txList);
+            Object.keys(categorySpends).forEach(cat => {
+                const catSpent = categorySpends[cat].totalSpent;
                 if (catSpent > 0) {
                     categoryTotals[cat] = catSpent;
                     totalAmount += catSpent;
@@ -1043,59 +1069,67 @@
 
         // SETTLEMENT
         function renderSettlement() {
-            let statNing2 = 0, statHsiang2 = 0;
+            let hsiangOwesNing = 0; // Hsiang 應給 Ning 的代墊款
+            let ningOwesHsiang = 0; // Ning 應給 Hsiang 的代墊款
             
-            // 從 2026-01-01 起累計所有非代購消費平帳（跨月不間斷）
-            const yearTxList = currentTransactions.filter(t => t.date && t.date >= '2026-01-01' && !t.isProxy);
+            const currentYearStr = currentYearMonth.split('-')[0];
+            const txList = currentTransactions.filter(t => !t.isProxy && t.date >= `${currentYearStr}-01-01`);
 
-            yearTxList.forEach(tx => {
-                if (tx.payer === 'Ning/2') statNing2 += Number(tx.amount) || 0;
-                else if (tx.payer === 'Hsiang/2') statHsiang2 += Number(tx.amount) || 0;
+            txList.forEach(tx => {
+                const amt = Number(tx.amount) || 0;
+
+                if (tx.payer === 'Ning/2') {
+                    hsiangOwesNing += amt / 2; // Ning 付全部，Hsiang 欠 50%
+                } else if (tx.payer === 'Hsiang/2') {
+                    ningOwesHsiang += amt / 2; // Hsiang 付全部，Ning 欠 50%
+                } else if (tx.payer === '甯墊' || tx.payer === 'Ning代墊') {
+                    hsiangOwesNing += amt;     // Ning 付全部，Hsiang 欠 100%
+                } else if (tx.payer === '翔墊' || tx.payer === 'Hsiang代墊') {
+                    ningOwesHsiang += amt;     // Hsiang 付全部，Ning 欠 100%
+                }
             });
 
-            const husbandOwesMe = statNing2 / 2;
-            const iOweHusband = statHsiang2 / 2;
-            const netExpenseDiff = iOweHusband - husbandOwesMe;
+            // 消費平帳淨額 (正數代表 Hsiang 欠 Ning，負數代表 Ning 欠 Hsiang)
+            const netExpenseDiff = hsiangOwesNing - ningOwesHsiang;
 
-            // 從 2026-01-01 起累計所有轉帳紀錄（跨月不間斷）
-            const yearTransfers = transferRecords.filter(tf => tf.date && tf.date >= '2026-01-01');
+            const yearTransfers = transferRecords.filter(tf => tf.date && tf.date >= `${currentYearStr}-01-01`);
 
+            let totalTransferred = 0;
             let ningTransferredTotal = 0;
             let hsiangTransferredTotal = 0;
 
             yearTransfers.forEach(tf => {
-                const amt = Number(tf.amount) || 0;
                 if (tf.from === 'Ning' && tf.to === 'Hsiang') {
-                    ningTransferredTotal += amt;
+                    totalTransferred += tf.amount;
+                    ningTransferredTotal += tf.amount;
                 } else if (tf.from === 'Hsiang' && tf.to === 'Ning') {
-                    hsiangTransferredTotal += amt;
+                    totalTransferred -= tf.amount;
+                    hsiangTransferredTotal += tf.amount;
                 }
             });
 
-            // 更新匯款小卡金額
             const statNingEl = document.getElementById('stat-tf-ning');
             const statHsiangEl = document.getElementById('stat-tf-hsiang');
             if (statNingEl) statNingEl.innerText = `$${Math.round(ningTransferredTotal).toLocaleString()}`;
             if (statHsiangEl) statHsiangEl.innerText = `$${Math.round(hsiangTransferredTotal).toLocaleString()}`;
 
-            // 淨對帳金額計算
-            const netTransferBalance = ningTransferredTotal - hsiangTransferredTotal;
-            const finalNetBalance = netTransferBalance - netExpenseDiff;
+            // 最終結算：(Ning 已轉出的錢 - Hsiang 已轉出的錢) + (Hsiang 應給 Ning 的消費代墊淨額)
+            const finalNetBalance = totalTransferred + netExpenseDiff;
 
             const heroLabelEl = document.getElementById('settle-hero-label');
             const heroAmountEl = document.getElementById('settle-hero-amount');
 
             if (finalNetBalance < 0) {
                 const oweAmount = Math.abs(finalNetBalance);
-                heroLabelEl.innerHTML = `<span class="text-[#823a45] font-black">2026 累積至今：記得轉給 Hsiang</span>`;
+                heroLabelEl.innerHTML = `<span class="text-[#823a45] font-black">記得轉給 Hsiang</span>`;
                 heroAmountEl.innerText = `$${Math.round(oweAmount).toLocaleString()}`;
                 heroAmountEl.className = "text-5xl sm:text-6xl font-black font-comic tracking-tight text-[#823a45]";
             } else if (finalNetBalance > 0) {
-                heroLabelEl.innerHTML = `<span class="text-[#4a4e51] font-black">2026 累積至今：記得轉給 Ning</span>`;
+                heroLabelEl.innerHTML = `<span class="text-[#4a4e51] font-black">記得轉給 Ning</span>`;
                 heroAmountEl.innerText = `$${Math.round(finalNetBalance).toLocaleString()}`;
                 heroAmountEl.className = "text-5xl sm:text-6xl font-black font-comic tracking-tight text-stone-900";
             } else {
-                heroLabelEl.innerHTML = `<span class="text-stone-700 font-black">✨ 2026 至今完全平帳</span>`;
+                heroLabelEl.innerHTML = `<span class="text-stone-700 font-black">✨ 完全平帳</span>`;
                 heroAmountEl.innerText = `$0`;
                 heroAmountEl.className = "text-5xl sm:text-6xl font-black font-comic tracking-tight text-stone-800";
             }
@@ -1108,16 +1142,15 @@
             if (!tbody) return;
             tbody.innerHTML = '';
 
-            // 顯示 2026-01-01 以後的所有轉帳紀錄
-            const cumulativeTransfers = transferRecords.filter(tf => tf.date && tf.date >= '2026-01-01')
-                                                        .sort((a, b) => new Date(b.date) - new Date(a.date));
+            const currentYearStr = currentYearMonth.split('-')[0];
+            const filteredTransfers = transferRecords.filter(tf => tf.date && tf.date >= `${currentYearStr}-01-01`);
 
-            if (cumulativeTransfers.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-stone-400 font-bold">自 2026/01/01 起尚無轉帳紀錄</td></tr>`;
+            if (filteredTransfers.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-stone-400 font-bold">尚無轉帳紀錄</td></tr>`;
                 return;
             }
 
-            cumulativeTransfers.forEach(tf => {
+            filteredTransfers.forEach(tf => {
                 const formattedDate = tf.date.replace(/-/g, '/');
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-stone-50 transition";
@@ -1141,7 +1174,6 @@
             if (!modal) return;
             modal.classList.toggle('hidden');
             if (!modal.classList.contains('hidden')) {
-                // 自動預設為今天的真實日期（不再寫死 28 號）
                 document.getElementById('tf-date').value = currentTodayStr;
                 document.getElementById('tf-amount').value = '';
                 document.getElementById('tf-note').value = '';
@@ -1160,66 +1192,51 @@
                 return;
             }
 
-            const apiUrl = localStorage.getItem('gas_api_url');
-            const transferData = { date, from, to, amount, note };
+            const newId = new Date().getTime();
+            const transferData = { id: newId, date, from, to, amount, note };
+            transferRecords.unshift(transferData);
 
-            // 若有設定 GAS URL，發送 POST 請求寫入 Google Sheets
+            toggleTransferModal();
+            renderSettlement();
+
+            const apiUrl = localStorage.getItem('gas_api_url') || document.getElementById('gas-api-url')?.value.trim();
             if (apiUrl) {
                 showToast('正在寫入 Google Sheets 雲端...');
                 fetch(apiUrl, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'addTransfer', transfer: transferData })
                 })
-                .then(res => res.json())
-                .then(res => {
-                    if (res.status === 'success') {
-                        showToast('已成功同步寫入 Google Sheets！');
-                        fetchDataFromGAS(); // 重新載入最新雲端數據
-                    } else {
-                        showToast('寫入失敗：' + (res.message || '未知錯誤'));
-                    }
+                .then(() => {
+                    showToast('已成功同步轉帳至雲端！');
+                    setTimeout(() => fetchDataFromGAS(), 1200);
                 })
-                .catch(err => {
-                    console.error(err);
-                    showToast('雲端同步失敗，已儲存於本機');
-                });
+                .catch(err => console.error(err));
             } else {
-                const newId = transferRecords.length > 0 ? Math.max(...transferRecords.map(r => r.id)) + 1 : new Date().getTime();
-                transferRecords.push({ id: newId, date, from, to, amount, note });
-                showToast('已成功登記轉帳紀錄（未連線雲端）');
+                showToast('已新增轉帳紀錄（未連接雲端）');
             }
-            
-            toggleTransferModal();
-            renderSettlement();
         }
 
         function deleteTransferRecord(id) {
-            const apiUrl = localStorage.getItem('gas_api_url');
+            transferRecords = transferRecords.filter(r => r.id !== id);
+            renderSettlement();
 
+            const apiUrl = localStorage.getItem('gas_api_url') || document.getElementById('gas-api-url')?.value.trim();
             if (apiUrl) {
-                showToast('正在從雲端刪除...');
+                showToast('正在從 Google Sheets 刪除...');
                 fetch(apiUrl, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'deleteTransfer', id: id })
                 })
-                .then(res => res.json())
-                .then(res => {
-                    if (res.status === 'success') {
-                        showToast('已從雲端成功刪除轉帳紀錄！');
-                        fetchDataFromGAS(); // 重新載入最新雲端數據
-                    } else {
-                        showToast('刪除失敗：' + (res.message || '未知錯誤'));
-                    }
+                .then(() => {
+                    showToast('已刪除轉帳紀錄');
+                    setTimeout(() => fetchDataFromGAS(), 1200);
                 })
-                .catch(err => {
-                    console.error(err);
-                    showToast('網路連線失敗，刪除無法同步');
-                });
+                .catch(err => console.error(err));
             } else {
-                transferRecords = transferRecords.filter(r => r.id !== id);
-                renderSettlement();
                 showToast('已刪除轉帳紀錄');
             }
         }
@@ -1261,26 +1278,11 @@
                 if (!isNaN(hubVal)) defaultBudgets[cat].hubLimit = hubVal;
                 if (!isNaN(myVal)) defaultBudgets[cat].myLimit = myVal;
             });
-
-            const apiUrl = localStorage.getItem('gas_api_url');
-            if (apiUrl) {
-                fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({
-                        action: 'saveBudgets',
-                        year: currentYearMonth.split('-')[0],
-                        budgets: defaultBudgets
-                    })
-                });
-            }
-
             renderHome();
             renderReport();
             showToast('預算設定已更新！');
         }
 
-        // MODALS
         function toggleMonthlyDetailModal() {
             const modal = document.getElementById('monthly-detail-modal');
             if (!modal) return;
