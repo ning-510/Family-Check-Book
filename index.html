@@ -72,7 +72,7 @@
                 <div class="absolute inset-0 bg-stone-300/80 translate-x-1 translate-y-1 border border-stone-400/40"></div>
                 <div class="relative bg-white border border-stone-300 flex items-stretch divide-x divide-stone-200">
                     <div class="bg-stone-100 px-3.5 py-2.5 flex items-center justify-center font-comic font-black text-stone-900 text-lg sm:text-xl flex-shrink-0" id="home-date-today">
-                        11/03
+                        10/28
                     </div>
                     <div class="flex-grow grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-stone-200 p-2 gap-1.5">
                         <div class="px-2.5 py-1.5 flex items-center justify-between min-w-0">
@@ -446,7 +446,7 @@
                 </div>
                 <div>
                     <label class="block font-bold text-stone-800 mb-1">備註</label>
-                    <input type="text" id="tf-note" placeholder="例如：平帳款" class="w-full bg-stone-50 border border-stone-300 p-2.5 font-bold text-base">
+                    <input type="text" id="tf-note" placeholder="例如：10月平帳款" class="w-full bg-stone-50 border border-stone-300 p-2.5 font-bold text-base">
                 </div>
             </div>
             <div class="flex space-x-3 pt-2">
@@ -471,7 +471,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     <div class="sm:col-span-2 relative">
                         <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-stone-400"></i>
-                        <input type="text" id="md-search-input" oninput="renderMonthlyDetailList()" placeholder="搜尋品名、關鍵字..." class="w-full pl-9 pr-3 py-2 bg-white border border-stone-300 text-sm font-bold">
+                        <input type="text" id="md-search-input" oninput="renderMonthlyDetailList()" placeholder="搜尋品名、備註、關鍵字..." class="w-full pl-9 pr-3 py-2 bg-white border border-stone-300 text-sm font-bold">
                     </div>
                     <div>
                         <select id="md-payer-filter" onchange="renderMonthlyDetailList()" class="w-full bg-white border border-stone-300 py-2 px-3 text-sm font-bold">
@@ -480,6 +480,8 @@
                             <option value="Hsiang/2">Hsiang/2</option>
                             <option value="Ning">Ning</option>
                             <option value="Hsiang">Hsiang</option>
+                            <option value="甯墊">甯墊</option>
+                            <option value="翔墊">翔墊</option>
                         </select>
                     </div>
                 </div>
@@ -550,7 +552,9 @@
                 'Ning': 'bg-stone-100 text-stone-800 border-stone-300 font-bold',
                 'Hsiang': 'bg-stone-100 text-stone-800 border-stone-300 font-bold',
                 'Ning/2': 'bg-[#f9f0f1] text-[#823a45] border-[#ead8db] font-bold',
-                'Hsiang/2': 'bg-[#f0f1f2] text-[#4a4e51] border-[#d5d8db] font-bold'
+                'Hsiang/2': 'bg-[#f0f1f2] text-[#4a4e51] border-[#d5d8db] font-bold',
+                '甯墊': 'bg-[#f9f0f1] text-[#823a45] border-[#ead8db] font-bold',
+                '翔墊': 'bg-[#f0f1f2] text-[#4a4e51] border-[#d5d8db] font-bold'
             };
             const style = styles[payer] || 'bg-stone-100 text-stone-700 border-stone-300';
             return `<span class="${style} text-xs px-1.5 py-0.5 border font-comic">${payer}</span>`;
@@ -585,22 +589,19 @@
             '其他': { myLimit: 1000, hubLimit: 1000 }
         };
 
-        // 自動取得今天日期與當前年月
         const todayObj = new Date();
-        const currentTodayStr = todayObj.toISOString().split('T')[0]; // yyyy-mm-dd
+        const currentTodayStr = todayObj.toISOString().split('T')[0];
         let currentTransactions = [...demoTransactions];
-        let currentYearMonth = currentTodayStr.substring(0, 7); // yyyy-mm
+        let currentYearMonth = currentTodayStr.substring(0, 7);
         let reportMode = 'month';
         let currentReportYear = todayObj.getFullYear();
         let reportChartInstance = null;
 
         window.onload = function() {
-            // 載入已儲存的 GAS URL
             const savedUrl = localStorage.getItem('gas_api_url') || '';
             const urlInput = document.getElementById('gas-api-url');
             if (urlInput) urlInput.value = savedUrl;
 
-            // 如果有設定 URL 則自動從雲端載入資料，否則使用預設範例
             if (savedUrl) {
                 fetchDataFromGAS();
             } else {
@@ -639,7 +640,6 @@
                 .then(res => {
                     if (res.status === 'success') {
                         if (res.transactions) {
-                            // 依日期從新到舊排序
                             currentTransactions = res.transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
                         }
                         if (res.transfers) transferRecords = res.transfers;
@@ -694,30 +694,29 @@
 
         function toggleProxyStatus(txId) {
             const tx = currentTransactions.find(t => t.id === txId);
-            if (!tx) return;
+            if (tx) {
+                tx.isProxy = !tx.isProxy;
+                
+                renderHome();
+                renderReport();
+                renderSettlement();
 
-            // 1. 本地狀態即時切換與畫面重算
-            tx.isProxy = !tx.isProxy;
-            renderHome();
-            renderReport();
-            renderSettlement();
-
-            // 2. 發送 POST 請求更新 Google Sheets 上的代購狀態 (H欄)
-            const apiUrl = localStorage.getItem('gas_api_url') || document.getElementById('gas-api-url')?.value.trim();
-            if (apiUrl) {
-                fetch(apiUrl, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'toggleProxy',
-                        id: tx.id,
-                        date: tx.date,
-                        isProxy: tx.isProxy
-                    })
-                })
-                .then(() => showToast(tx.isProxy ? '已標記為代購（已扣除該筆花費）' : '已取消代購標記（已計入家庭花費）'))
-                .catch(err => console.error(err));
+                const apiUrl = localStorage.getItem('gas_api_url');
+                if (apiUrl) {
+                    fetch(apiUrl, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'toggleProxy',
+                            id: tx.id,
+                            date: tx.date,
+                            isProxy: tx.isProxy
+                        })
+                    }).then(() => {
+                        showToast(tx.isProxy ? '已設為代購（不計入花費）' : '已取消代購標記');
+                    }).catch(err => console.error(err));
+                }
             }
         }
 
@@ -728,24 +727,17 @@
             });
 
             txList.forEach(tx => {
-                // 若勾選代購，直接不納入任何花費計算
                 if (tx.isProxy) return;
                 if (!spends[tx.category]) spends[tx.category] = { mySpent: 0, hubSpent: 0, totalSpent: 0 };
                 const amt = Number(tx.amount) || 0;
                 let myB = 0, hubB = 0;
 
-                // 依據 6 種付款人精準計算個人實際承擔花費
-                if (tx.payer === 'Ning' || tx.payer === '翔墊') { 
-                    // 翔墊：Hsiang先付但這是Ning的花費，所以歸入 Ning 花費 100%
-                    myB = amt; 
-                } else if (tx.payer === 'Hsiang' || tx.payer === '甯墊') { 
-                    // 甯墊：Ning先付但這是Hsiang的花費，所以歸入 Hsiang 花費 100%
-                    hubB = amt; 
-                } else if (tx.payer === 'Ning/2' || tx.payer === 'Hsiang/2') { 
-                    // 平分：各自負擔 50%
-                    myB = amt / 2; 
-                    hubB = amt / 2; 
-                }
+                const p = String(tx.payer || '').trim();
+                if (p === 'Ning') { myB = amt; }
+                else if (p === 'Hsiang') { hubB = amt; }
+                else if (p === 'Ning/2' || p === 'Hsiang/2') { myB = amt / 2; hubB = amt / 2; }
+                else if (p === '甯墊') { hubB = amt; }
+                else if (p === '翔墊') { myB = amt; }
 
                 spends[tx.category].mySpent += myB;
                 spends[tx.category].hubSpent += hubB;
@@ -781,7 +773,6 @@
             document.getElementById('home-month-label').innerText = monthNamesEnglish[monthIdx] || 'OCTOBER';
             document.getElementById('home-month-highlight').className = `absolute bottom-0.5 left-0 w-[72%] h-2.5 ${monthHighlighterColors[monthIdx]} rounded-xs -z-0`;
             
-            // 動態顯示今天的月日 (MM/DD)
             const todayPart = currentTodayStr.substring(5).replace('-', '/');
             document.getElementById('home-date-today').innerText = todayPart;
 
@@ -821,7 +812,6 @@
             container.innerHTML = '';
 
             const grouped = {};
-            // 排序資料：確保最新日期的資料顯示在最前面
             const sortedTx = [...currentTransactions].sort((a, b) => new Date(b.date) - new Date(a.date));
 
             sortedTx.forEach(tx => {
@@ -829,7 +819,6 @@
                 grouped[tx.date].push(tx);
             });
 
-            // 僅取出最近 5 個有記帳紀錄的日期
             const sortedDates = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a)).slice(0, 5);
 
             if (sortedDates.length === 0) {
@@ -977,9 +966,12 @@
                 const amt = Number(tx.amount) || 0;
                 let myB = 0, hubB = 0;
 
-                if (tx.payer === 'Ning') { myB = amt; }
-                else if (tx.payer === 'Hsiang') { hubB = amt; }
-                else if (tx.payer === 'Ning/2' || tx.payer === 'Hsiang/2') { myB = amt / 2; hubB = amt / 2; }
+                const p = String(tx.payer || '').trim();
+                if (p === 'Ning') { myB = amt; }
+                else if (p === 'Hsiang') { hubB = amt; }
+                else if (p === 'Ning/2' || p === 'Hsiang/2') { myB = amt / 2; hubB = amt / 2; }
+                else if (p === '甯墊') { hubB = amt; }
+                else if (p === '翔墊') { myB = amt; }
 
                 spends[tx.category].mySpent += myB;
                 spends[tx.category].hubSpent += hubB;
@@ -1069,30 +1061,25 @@
 
         // SETTLEMENT
         function renderSettlement() {
-            let hsiangOwesNing = 0; // Hsiang 應給 Ning 的代墊款
-            let ningOwesHsiang = 0; // Ning 應給 Hsiang 的代墊款
-            
+            let hsiangOwesNingSum = 0;
+            let ningOwesHsiangSum = 0;
+
             const currentYearStr = currentYearMonth.split('-')[0];
-            const txList = currentTransactions.filter(t => !t.isProxy && t.date >= `${currentYearStr}-01-01`);
+            const yearTxList = currentTransactions.filter(tx => tx.date && tx.date.startsWith(currentYearStr) && !tx.isProxy);
 
-            txList.forEach(tx => {
+            yearTxList.forEach(tx => {
                 const amt = Number(tx.amount) || 0;
+                const p = String(tx.payer || '').trim();
 
-                if (tx.payer === 'Ning/2') {
-                    hsiangOwesNing += amt / 2; // Ning 付全部，Hsiang 欠 50%
-                } else if (tx.payer === 'Hsiang/2') {
-                    ningOwesHsiang += amt / 2; // Hsiang 付全部，Ning 欠 50%
-                } else if (tx.payer === '甯墊' || tx.payer === 'Ning代墊') {
-                    hsiangOwesNing += amt;     // Ning 付全部，Hsiang 欠 100%
-                } else if (tx.payer === '翔墊' || tx.payer === 'Hsiang代墊') {
-                    ningOwesHsiang += amt;     // Hsiang 付全部，Ning 欠 100%
-                }
+                if (p === 'Ning/2') { hsiangOwesNingSum += amt / 2; }
+                else if (p === 'Hsiang/2') { ningOwesHsiangSum += amt / 2; }
+                else if (p === '甯墊') { hsiangOwesNingSum += amt; }
+                else if (p === '翔墊') { ningOwesHsiangSum += amt; }
             });
 
-            // 消費平帳淨額 (正數代表 Hsiang 欠 Ning，負數代表 Ning 欠 Hsiang)
-            const netExpenseDiff = hsiangOwesNing - ningOwesHsiang;
+            const netExpenseDiff = ningOwesHsiangSum - hsiangOwesNingSum;
 
-            const yearTransfers = transferRecords.filter(tf => tf.date && tf.date >= `${currentYearStr}-01-01`);
+            const yearTransfers = transferRecords.filter(tf => tf.date && tf.date.startsWith(currentYearStr));
 
             let totalTransferred = 0;
             let ningTransferredTotal = 0;
@@ -1113,8 +1100,7 @@
             if (statNingEl) statNingEl.innerText = `$${Math.round(ningTransferredTotal).toLocaleString()}`;
             if (statHsiangEl) statHsiangEl.innerText = `$${Math.round(hsiangTransferredTotal).toLocaleString()}`;
 
-            // 最終結算：(Ning 已轉出的錢 - Hsiang 已轉出的錢) + (Hsiang 應給 Ning 的消費代墊淨額)
-            const finalNetBalance = totalTransferred + netExpenseDiff;
+            const finalNetBalance = totalTransferred - netExpenseDiff;
 
             const heroLabelEl = document.getElementById('settle-hero-label');
             const heroAmountEl = document.getElementById('settle-hero-amount');
@@ -1143,14 +1129,14 @@
             tbody.innerHTML = '';
 
             const currentYearStr = currentYearMonth.split('-')[0];
-            const filteredTransfers = transferRecords.filter(tf => tf.date && tf.date >= `${currentYearStr}-01-01`);
+            const cumulativeTransfers = transferRecords.filter(tf => tf.date && tf.date.startsWith(currentYearStr));
 
-            if (filteredTransfers.length === 0) {
+            if (cumulativeTransfers.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-stone-400 font-bold">尚無轉帳紀錄</td></tr>`;
                 return;
             }
 
-            filteredTransfers.forEach(tf => {
+            cumulativeTransfers.forEach(tf => {
                 const formattedDate = tf.date.replace(/-/g, '/');
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-stone-50 transition";
@@ -1192,51 +1178,55 @@
                 return;
             }
 
-            const newId = new Date().getTime();
-            const transferData = { id: newId, date, from, to, amount, note };
-            transferRecords.unshift(transferData);
-
+            const newTransfer = { date, from, to, amount, note };
+            
             toggleTransferModal();
-            renderSettlement();
 
-            const apiUrl = localStorage.getItem('gas_api_url') || document.getElementById('gas-api-url')?.value.trim();
+            const apiUrl = localStorage.getItem('gas_api_url');
             if (apiUrl) {
-                showToast('正在寫入 Google Sheets 雲端...');
+                showToast('正在寫入 Google Sheets Transfers 分頁...');
                 fetch(apiUrl, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'addTransfer', transfer: transferData })
-                })
-                .then(() => {
-                    showToast('已成功同步轉帳至雲端！');
+                    body: JSON.stringify({
+                        action: 'addTransfer',
+                        transfer: newTransfer
+                    })
+                }).then(() => {
+                    showToast('已成功登記轉帳並寫入雲端！');
                     setTimeout(() => fetchDataFromGAS(), 1200);
-                })
-                .catch(err => console.error(err));
+                }).catch(err => {
+                    console.error(err);
+                    showToast('同步失敗，僅更新本機數據');
+                });
             } else {
-                showToast('已新增轉帳紀錄（未連接雲端）');
+                const newId = transferRecords.length > 0 ? Math.max(...transferRecords.map(r => r.id)) + 1 : 1;
+                transferRecords.push({ id: newId, ...newTransfer });
+                renderSettlement();
+                showToast('已成功登記轉帳紀錄！');
             }
         }
 
         function deleteTransferRecord(id) {
-            transferRecords = transferRecords.filter(r => r.id !== id);
-            renderSettlement();
-
-            const apiUrl = localStorage.getItem('gas_api_url') || document.getElementById('gas-api-url')?.value.trim();
+            const apiUrl = localStorage.getItem('gas_api_url');
             if (apiUrl) {
-                showToast('正在從 Google Sheets 刪除...');
+                showToast('正在從雲端刪除轉帳紀錄...');
                 fetch(apiUrl, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'deleteTransfer', id: id })
-                })
-                .then(() => {
-                    showToast('已刪除轉帳紀錄');
+                    body: JSON.stringify({
+                        action: 'deleteTransfer',
+                        id: id
+                    })
+                }).then(() => {
+                    showToast('已自雲端刪除轉帳紀錄！');
                     setTimeout(() => fetchDataFromGAS(), 1200);
-                })
-                .catch(err => console.error(err));
+                }).catch(err => console.error(err));
             } else {
+                transferRecords = transferRecords.filter(r => r.id !== id);
+                renderSettlement();
                 showToast('已刪除轉帳紀錄');
             }
         }
@@ -1303,7 +1293,8 @@
             const monthTxList = getFilteredTransactions();
             const filtered = monthTxList.filter(tx => {
                 const itemStr = (tx.item || tx.subcategory || '').toLowerCase();
-                const matchSearch = itemStr.includes(searchVal) || tx.category.toLowerCase().includes(searchVal);
+                const noteStr = (tx.note || '').toLowerCase();
+                const matchSearch = itemStr.includes(searchVal) || tx.category.toLowerCase().includes(searchVal) || noteStr.includes(searchVal);
                 const matchPayer = payerFilter === 'ALL' || tx.payer === payerFilter;
                 return matchSearch && matchPayer;
             });
@@ -1318,15 +1309,21 @@
                 tr.className = "hover:bg-stone-50 transition";
                 const shortDate = tx.date.substring(5).replace('-', '/');
                 const displayTitle = tx.item || tx.subcategory || tx.category || '未命名項目';
+                const noteHtml = tx.note ? `<div class="text-xs text-stone-400 font-normal mt-0.5">${tx.note}</div>` : '';
 
                 tr.innerHTML = `
-                    <td class="py-2.5 px-3 font-comic font-bold text-stone-700 whitespace-nowrap">${shortDate}</td>
-                    <td class="py-2.5 px-3 whitespace-nowrap">
-                        <div class="text-stone-900 font-black">${displayTitle}</div>
-                        <div class="text-xs text-stone-500">${tx.category}</div>
+                    <td class="py-2.5 px-3 font-comic font-bold text-stone-700 whitespace-nowrap align-middle">${shortDate}</td>
+                    <td class="py-2.5 px-3 whitespace-nowrap align-middle">
+                        <div class="flex items-center space-x-2.5">
+                            ${getCategoryIconBadge(tx.category)}
+                            <div>
+                                <div class="text-stone-900 font-black text-base">${displayTitle}</div>
+                                ${noteHtml}
+                            </div>
+                        </div>
                     </td>
-                    <td class="py-2.5 px-3 font-comic font-black text-right text-stone-900 whitespace-nowrap">$${tx.amount.toLocaleString()}</td>
-                    <td class="py-2.5 px-3 text-center whitespace-nowrap">${getPayerBadge(tx.payer)}</td>
+                    <td class="py-2.5 px-3 font-comic font-black text-right text-stone-900 whitespace-nowrap align-middle">$${tx.amount.toLocaleString()}</td>
+                    <td class="py-2.5 px-3 text-center whitespace-nowrap align-middle">${getPayerBadge(tx.payer)}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -1358,3 +1355,5 @@
     </script>
 </body>
 </html>
+
+
