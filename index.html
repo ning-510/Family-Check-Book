@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Financial Pulse - 家庭帳務控制中心</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -45,6 +45,156 @@
         .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #d6d3cd; }
+
+        /* Mobile layout: contain tables locally; flex/grid children may shrink. */
+        *, *::before, *::after { box-sizing: border-box; }
+        html { overflow-x: clip; }
+        body { width: 100%; max-width: 1152px; overflow-x: clip; font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Noto Sans TC", sans-serif; }
+        main, .tab-view, .tab-view > *, .grid > *, .flex > * { min-width: 0; }
+        main { width:100%; max-width:100%; }
+        .hidden { display:none !important; }
+        input, select, textarea { max-width:100%; font-size:16px; }
+        button, a, input, select { touch-action: manipulation; }
+        button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #6a8397; outline-offset:3px; }
+        .overflow-x-auto { width:100%; max-width:100%; overscroll-behavior-x:contain; }
+        .font-comic { font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", sans-serif; font-variant-numeric:tabular-nums; letter-spacing:-.025em; }
+        .tab-view > .relative > .absolute { display:none; }
+        .tab-view > .relative > .relative.bg-white { border-radius:16px; }
+        #report-period-title { font-size:clamp(18px,5vw,28px); letter-spacing:0; }
+        nav { padding-bottom:max(10px,env(safe-area-inset-bottom)) !important; }
+        nav .nav-btn { min-height:48px; gap:5px; font-size:14px; }
+        nav .nav-btn i { font-size:20px; }
+        #transfer-modal > div, #monthly-detail-modal > div { min-width:0; max-height:90dvh; overflow-y:auto; }
+        #view-settings h2, #view-report h4 { font-size:18px; }
+        #view-settings .font-comic { overflow-wrap:anywhere; }
+        .home-shell { display:flex; flex-direction:column; gap:20px; }
+        .home-topline { display:flex; align-items:center; justify-content:space-between; gap:10px; padding-top:4px; }
+        .home-kicker { margin:0; color:#85817a; font-size:14px; font-weight:700; letter-spacing:.16em; }
+        .home-heading { margin:3px 0 0; font-size:24px; color:#323c43; font-weight:750; letter-spacing:-.04em; }
+        .quiet-button { min-width:44px; min-height:44px; border:1px solid #dfddd7; border-radius:12px; background:#faf9f6; color:#4a4e51; font-size:16px; padding:8px 12px; }
+        .period-control { position:sticky; top:0; z-index:35; display:grid; grid-template-columns:44px minmax(0,1fr) 44px auto; align-items:center; gap:5px; padding:8px 0; background:#f3f2ee; }
+        .period-center { position:relative; display:flex; align-items:center; justify-content:center; min-height:44px; border-radius:12px; background:#e9e8e2; }
+        .period-center span { font-size:16px; font-weight:750; white-space:nowrap; color:#353d42; }
+        .period-center input { position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; }
+        .period-center input:focus-visible { opacity:1; background:#e9e8e2; }
+        .people-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+        .person-card { min-width:0; padding:18px 14px 15px; border-radius:16px; border:1px solid #e1ddd5; background:#fffdfa; position:relative; overflow:hidden; }
+        .person-card::before { content:''; position:absolute; top:0; left:16px; right:16px; height:3px; background:var(--person); border-radius:0 0 3px 3px; }
+        .person-card.ning { --person:#823a45; background:#fcf6f5; }
+        .person-card.hsiang { --person:#4a4e51; background:#f7f8f7; }
+        .person-name { color:var(--person); font-size:18px; font-weight:750; }
+        .person-caption { font-size:14px; color:#716a62; margin:5px 0 2px; }
+        .person-amount { font-size:clamp(28px,7.5vw,40px); line-height:1.35; font-weight:760; letter-spacing:-.06em; color:#30383d; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+        .person-budget { border-top:1px solid #e8e1da; margin-top:12px; padding-top:10px; font-size:14px; color:#79736d; line-height:1.7; }
+        .person-budget strong { display:block; font-weight:600; color:var(--person); overflow-wrap:anywhere; }
+        .family-line { display:flex; justify-content:space-between; gap:8px; align-items:center; padding:13px 3px; border-bottom:1px solid #dedbd4; color:#69645d; font-size:16px; }
+        .family-line strong { font-size:17px; color:#3a4248; font-variant-numeric:tabular-nums; }
+        .records-heading { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+        .records-heading h3 { font-size:19px; font-weight:750; margin:0; color:#3a4248; }
+        .records-heading p { margin:4px 0 0; color:#716a62; font-size:14px; }
+        .filter-row { display:flex; gap:6px; padding:4px; border:1px solid #dfdcd5; border-radius:16px; background:#eeece7; }
+        .filter-row button { flex:1; min-height:40px; border:0; background:transparent; color:#716a62; font-size:16px; border-radius:12px; padding:7px 3px; }
+        .filter-row button[aria-pressed=true] { background:#fffdfa; color:#333e44; font-weight:700; box-shadow:0 1px 4px #342d2110; }
+        .home-search { width:100%; border:1px solid #e1ddd5; border-radius:12px; padding:12px 14px; background:#faf9f6; color:#3a4248; }
+        .day-group { margin-bottom:18px; }
+        .day-label { display:flex; justify-content:space-between; gap:8px; font-size:14px; color:#8a8179; padding:0 3px 8px; }
+        .day-label strong { color:#565c5d; font-weight:650; }
+        .day-list { border:1px solid #e6e1d8; border-radius:16px; overflow:hidden; background:#fffdfa; }
+        .transaction-row { display:grid; grid-template-columns: minmax(0,1fr) auto; gap:6px 10px; padding:14px; border-bottom:1px solid #ece7df; }
+        .transaction-row:last-child { border-bottom:0; }
+        .transaction-row.proxy { background:#f1f4ef; }
+        .tx-title { font-size:18px; font-weight:650; color:#3a4248; overflow-wrap:anywhere; line-height:1.55; }
+        .tx-note { font-size:14px; color:#716a62; overflow-wrap:anywhere; margin-top:3px; }
+        .tx-amount { text-align:right; font-size:20px; font-weight:700; color:#333e44; font-variant-numeric:tabular-nums; white-space:nowrap; }
+        .tx-badges { display:flex; flex-wrap:wrap; align-items:center; gap:5px; }
+        .tx-badges span { font-size:14px; padding:2px 5px; border-radius:4px; background:#f1eeea; color:#7a726a; }
+        .proxy-toggle { display:flex; align-items:center; justify-content:flex-end; gap:6px; min-height:44px; font-size:14px; color:#827a71; cursor:pointer; }
+        .proxy-toggle input { width:18px; height:18px; accent-color:#78866b; }
+        .proxy-toggle:has(input:checked) { color:#637057; font-weight:700; }
+        .empty-state { padding:30px 16px; border:1px dashed #d9d4ca; border-radius:16px; text-align:center; color:#716a62; font-size:14px; line-height:1.8; }
+        .load-more { width:100%; min-height:44px; border:1px solid #ddd7ce; border-radius:12px; color:#686159; background:#f8f6f1; font-size:14px; }
+        @media(max-width:359px) {main {padding-left:12px !important;padding-right:12px !important;} .people-grid{gap:8px}.person-card{padding-left:11px;padding-right:11px}.period-control{grid-template-columns:40px minmax(0,1fr) 40px auto}.quiet-button{min-width:40px;padding:8px}.tx-amount{font-size:18px}}
+
+        /* One radius system for all four tabs and both dialogs. */
+        :root { --panel-radius:16px; --control-radius:12px; }
+        .tab-view .relative.bg-white.border,
+        .tab-view > .relative > .relative.border,
+        .tab-view .bg-stone-50.border,
+        .tab-view .grid.border,
+        .tab-view .overflow-x-auto.border { border-radius:var(--panel-radius); }
+        .tab-view .overflow-x-auto.border { overflow-x:auto; overflow-y:hidden; }
+        .tab-view button, nav button, #transfer-modal button, #monthly-detail-modal button,
+        .tab-view input:not([type=checkbox]), .tab-view select,
+        #transfer-modal input:not([type=checkbox]), #transfer-modal select,
+        #monthly-detail-modal input, #monthly-detail-modal select { border-radius:var(--control-radius); }
+        #transfer-modal > div, #monthly-detail-modal > div { border-radius:var(--panel-radius); overflow-x:hidden; }
+        #view-settlement .shadow-md { border-radius:var(--panel-radius); overflow:hidden; }
+        #view-settlement .rounded-t-xs { border-radius:var(--panel-radius) var(--panel-radius) 0 0; }
+        #view-settlement .rounded-b-xs { border-radius:0 0 var(--panel-radius) var(--panel-radius); }
+        #monthly-detail-modal > div > :first-child { border-radius:var(--panel-radius) var(--panel-radius) 0 0; }
+        #monthly-detail-modal > div > :last-child { border-radius:0 0 var(--panel-radius) var(--panel-radius); }
+        nav { border-radius:var(--panel-radius) var(--panel-radius) 0 0; }
+        .tab-view button, #transfer-modal button, #monthly-detail-modal button { min-height:44px; }
+        .tab-view input:not([type=checkbox]), .tab-view select { min-height:44px; }
+        .tab-view .text-xs, #transfer-modal .text-xs, #monthly-detail-modal .text-xs { font-size:14px !important; line-height:1.6; }
+        .tab-view .text-sm, #transfer-modal .text-sm, #monthly-detail-modal .text-sm { font-size:16px !important; line-height:1.6; }
+        #view-report h4, #view-settings h2 { font-size:20px; line-height:1.5; }
+        .tx-details { display:flex; align-items:flex-start; gap:10px; min-width:0; }
+        .tx-copy { min-width:0; }
+        .tx-category-icon { display:flex; flex:0 0 32px; align-items:center; justify-content:center; padding-top:1px; }
+        .tx-category-icon i { font-size:24px; }
+        .tx-badges { padding-left:42px; gap:6px; }
+        .tx-badges span { border-radius:8px; line-height:1.55; color:#625c56; }
+        .tx-note { line-height:1.6; }
+        .day-label { flex-wrap:wrap; row-gap:3px; }
+        .family-line { flex-wrap:wrap; row-gap:5px; }
+        .person-caption { line-height:1.6; }
+        .person-budget { line-height:1.8; }
+        .proxy-toggle { font-size:16px; }
+        .proxy-toggle input { width:20px; height:20px; }
+        .empty-state, .load-more { font-size:16px; }
+        @media(max-width:359px) {
+            .transaction-row { gap:6px 8px; padding:12px; }
+            .tx-details { gap:8px; }
+            .tx-badges { padding-left:40px; }
+        }
+
+        /* Balance: square gradient backdrop, floating rounded H/N cards. */
+        #view-settlement.balance-page { display:flex; flex-direction:column; gap:20px; padding-bottom:12px; }
+        .balance-stage { position:relative; isolation:isolate; padding-top:24px; }
+        .balance-stage::before { content:''; position:absolute; z-index:-1; top:-16px; left:-16px; right:-16px; height:65%; background:linear-gradient(125deg,#34434f 0%,#465b67 52%,#617683 100%); border-radius:0; }
+        .balance-heading { position:relative; text-align:center; color:#fff; padding:0 44px 26px; }
+        .balance-heading h1 { margin:0; font-size:clamp(30px,8vw,42px); line-height:1.2; font-weight:750; letter-spacing:-.03em; }
+        .balance-heading p { margin:12px 0 0; font-size:18px; color:#f1f3f4; }
+        #view-settlement .balance-refresh { position:absolute; right:0; top:0; width:44px; height:44px; border:0; background:transparent; color:#fff; font-size:32px; line-height:1; border-radius:12px; }
+        .balance-pair { position:relative; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:22px; align-items:stretch; }
+        .balance-person { min-width:0; display:flex; flex-direction:column; align-items:center; text-align:center; padding:22px 10px 24px; background:linear-gradient(145deg,#fff 0%,#fdfbf8 100%); border:1px solid #e6e3df; border-radius:20px; box-shadow:0 12px 24px #343b431c; }
+        .balance-monogram { display:flex; align-items:center; justify-content:center; width:76px; height:76px; border-radius:50%; background:linear-gradient(140deg,#a7b9bf,#7f98a4); color:white; font-family:Georgia,serif; font-size:48px; line-height:1; }
+        .balance-ning .balance-monogram { background:linear-gradient(140deg,#c6a8ad,#ab858d); }
+        .balance-person h2 { margin:12px 0 14px; font-size:clamp(22px,6vw,30px); line-height:1.2; font-weight:750; color:#303d44; }
+        .balance-pill { display:inline-flex; align-items:center; justify-content:center; min-height:34px; padding:4px 13px; border-radius:999px; background:#e9ece5; color:#697451; font-size:16px; font-weight:700; }
+        .balance-pill[data-state=receive] { color:#823a45; background:#f0e5e6; }
+        .balance-pill[data-state=settled], .balance-pill[data-state=unknown] { color:#727773; background:#eeefeb; }
+        .balance-money { width:100%; margin-top:17px; font-size:clamp(25px,7.4vw,42px); line-height:1.25; font-weight:780; letter-spacing:-.055em; color:#303d44; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+        .balance-ning .balance-money { color:#823a45; }
+        .balance-direction { position:absolute; left:50%; top:57%; transform:translate(-50%,-50%); font-size:26px; font-weight:700; color:#697451; line-height:1; }
+        .balance-explanation { margin:4px 0 0; text-align:center; color:#303d44; font-size:clamp(18px,5vw,24px); line-height:1.5; font-weight:700; overflow-wrap:anywhere; }
+        #view-settlement .balance-action { display:flex; align-items:center; justify-content:center; gap:10px; min-height:56px; width:100%; border:0; border-radius:16px; padding:12px 16px; color:#fff; background:linear-gradient(115deg,#3d515d,#34434f); box-shadow:0 5px 12px #34434f1c; font-size:20px; font-weight:700; }
+        .balance-action span { font-size:27px; line-height:1; }
+        .balance-action:disabled { opacity:.5; cursor:not-allowed; }
+        .repayment-panel { min-width:0; margin-top:4px; padding:18px 16px 4px; border:1px solid #e6e1da; background:#fffdfa; border-radius:16px; }
+        .repayment-heading { display:flex; align-items:center; justify-content:space-between; gap:8px; padding-bottom:12px; border-bottom:1px solid #e6e1da; }
+        .repayment-heading h2 { margin:0; font-size:22px; font-weight:750; color:#303d44; }
+        #view-settlement .repayment-heading button { min-height:44px; padding:5px 0 5px 8px; border:0; background:transparent; color:#697451; font-size:16px; font-weight:650; }
+        .repayment-row { display:grid; grid-template-columns:28px minmax(0,1fr) auto; align-items:center; gap:8px; padding:17px 0; border-bottom:1px solid #ece7e0; }
+        .repayment-row:last-child { border-bottom:0; }
+        .repayment-icon { display:flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:50%; background:#eeeee6; color:#697451; font-size:19px; }
+        .repayment-name { color:#35434b; font-size:16px; font-weight:650; line-height:1.5; overflow-wrap:anywhere; }
+        .repayment-date,.repayment-note { color:#777a76; font-size:14px; line-height:1.6; overflow-wrap:anywhere; }
+        .repayment-value { color:#823a45; font-size:18px; font-weight:750; font-variant-numeric:tabular-nums; letter-spacing:-.03em; white-space:nowrap; }
+        .repayment-value.reverse { color:#435560; }
+        @media(min-width:768px) { .balance-person{padding-top:30px;padding-bottom:32px}.balance-pair{max-width:660px;margin:auto}.balance-stage::before{height:66%}.balance-action,.repayment-panel{max-width:660px;align-self:center}.repayment-panel{width:100%} }
+        @media(max-width:359px) { .balance-stage::before{left:-12px;right:-12px}.balance-pair{gap:18px}.balance-person{padding:18px 8px 22px}.balance-monogram{width:64px;height:64px;font-size:42px}.balance-money{font-size:25px}.repayment-panel{padding-left:12px;padding-right:12px}.repayment-row{grid-template-columns:22px minmax(0,1fr) auto;gap:6px}.repayment-icon{width:22px;height:22px}.repayment-value{font-size:16px} }
     </style>
 </head>
 <body class="bg-[#f3f2ee] text-stone-800 min-h-screen flex flex-col pb-24 max-w-md sm:max-w-xl md:max-w-4xl lg:max-w-6xl mx-auto border-x border-stone-300">
@@ -55,121 +205,33 @@
     <!-- MAIN VIEW AREA -->
     <main class="flex-grow px-4 pt-4 space-y-5">
 
-        <!-- TAB 1: 主頁 (HOME) -->
-        <div id="view-home" class="tab-view space-y-5">
-            
-            <!-- Floating Month Header -->
-            <div class="sticky top-0 z-40 bg-[#f3f2ee] flex items-center justify-center py-2.5 -mx-4 px-4">
-                <div class="relative inline-flex items-baseline space-x-2">
-                    <span id="home-month-label" class="text-3xl sm:text-4xl font-comic font-black tracking-wider text-stone-900 relative z-10 px-1">OCTOBER</span>
-                    <span id="home-year-label" class="text-base sm:text-lg font-comic font-bold tracking-widest text-stone-600 relative z-10">2026</span>
-                    <span id="home-month-highlight" class="absolute bottom-0.5 left-0 w-[72%] h-3 bg-sky-300/80 rounded-xs -z-0"></span>
-                </div>
+        <!-- TAB 1: mobile monthly overview -->
+        <div id="view-home" class="tab-view home-shell">
+            <div class="home-topline"><div><p class="home-kicker">OUR EVERYDAY</p><h1 class="home-heading">日常帳本</h1></div><button class="quiet-button" onclick="fetchDataFromGAS()" aria-label="重新整理帳本">↻</button></div>
+            <div class="period-control" aria-label="選擇月份">
+                <button class="quiet-button" onclick="navigateHomeMonth(-1)" aria-label="上一個月">‹</button>
+                <label class="period-center"><span id="home-period-label">選擇月份</span><input type="month" id="home-month-picker" aria-label="選擇年與月" onchange="selectHomeMonth(this.value)"></label>
+                <button class="quiet-button" onclick="navigateHomeMonth(1)" aria-label="下一個月">›</button>
+                <button class="quiet-button" onclick="selectHomeMonth(currentTodayStr.slice(0,7))">本月</button>
             </div>
-
-            <!-- Dynamic Daily Budget Status Bar -->
-            <div class="relative">
-                <div class="absolute inset-0 bg-stone-300/80 translate-x-1 translate-y-1 border border-stone-400/40"></div>
-                <div class="relative bg-white border border-stone-300 flex items-stretch divide-x divide-stone-200">
-                    <div class="bg-stone-100 px-3.5 py-2.5 flex items-center justify-center font-comic font-black text-stone-900 text-lg sm:text-xl flex-shrink-0" id="home-date-today">
-                        10/28
-                    </div>
-                    <div class="flex-grow grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-stone-200 p-2 gap-1.5">
-                        <div class="px-2.5 py-1.5 flex items-center justify-between min-w-0">
-                            <span class="text-base sm:text-lg font-bold text-stone-800 flex items-center flex-shrink-0 mr-1.5">Hsiang 預算</span>
-                            <span id="home-status-hub-text" class="text-lg sm:text-xl font-black font-comic text-stone-900 truncate text-right">剩 $0</span>
-                        </div>
-                        <div class="px-2.5 py-1.5 flex items-center justify-between min-w-0">
-                            <span class="text-base sm:text-lg font-bold text-stone-800 flex items-center flex-shrink-0 mr-1.5">Ning 預算</span>
-                            <span id="home-status-my-text" class="text-lg sm:text-xl font-black font-comic text-stone-900 truncate text-right">剩 $0</span>
-                        </div>
-                    </div>
+            <section aria-label="兩人的月度花費">
+                <div class="people-grid">
+                    <article class="person-card hsiang"><div class="person-name">Hsiang</div><div class="person-caption">本月負擔 · 不含代購</div><div id="home-hub-spent" class="person-amount">$0</div><div class="person-budget"><span>預算 <span id="home-hub-budget">$0</span></span><strong id="home-hub-rem-text">尚未設定預算</strong></div></article>
+                    <article class="person-card ning"><div class="person-name">Ning</div><div class="person-caption">本月負擔 · 不含代購</div><div id="home-my-spent" class="person-amount">$0</div><div class="person-budget"><span>預算 <span id="home-my-budget">$0</span></span><strong id="home-my-rem-text">尚未設定預算</strong></div></article>
                 </div>
-            </div>
-
-            <!-- Top 3 Swipable Cards -->
-            <div class="flex md:grid md:grid-cols-3 gap-4 overflow-x-auto snap-x snap-mandatory pb-2 custom-scrollbar -mx-4 px-4 md:mx-0 md:px-0">
-                <!-- Card 1: 本月家庭總花費 -->
-                <div class="min-w-[88%] md:min-w-0 snap-center flex-shrink-0 relative">
-                    <div class="absolute inset-0 bg-stone-900 translate-x-1 translate-y-1"></div>
-                    <div class="relative bg-[#3a4248] text-stone-100 p-5 sm:p-6 border border-stone-700 flex flex-col justify-between space-y-3.5">
-                        <div class="flex items-center justify-between">
-                            <span class="text-lg sm:text-xl font-black text-stone-100 tracking-wide flex items-center">
-                                <span class="w-3.5 h-3.5 bg-[#c2d1b8] mr-2"></span>本月家庭總花費
-                            </span>
-                            <span id="home-total-badge" class="text-sm font-comic font-black px-2.5 py-1 bg-stone-800 text-[#c2d1b8] border border-stone-600">0%</span>
-                        </div>
-                        <div>
-                            <div class="text-4xl sm:text-5xl font-black font-comic tracking-tight text-white" id="home-total-spent">$0</div>
-                            <div class="text-base text-stone-300 mt-2 flex justify-between font-bold">
-                                <span>預算 <strong id="home-total-budget" class="font-comic text-stone-100 text-lg">$0</strong></span>
-                                <span id="home-total-rem-text" class="text-[#c2d1b8] font-bold">剩餘 $0</span>
-                            </div>
-                        </div>
-                        <div class="w-full bg-stone-700 h-3 overflow-hidden">
-                            <div id="home-total-bar" class="bg-[#c2d1b8] h-3 transition-all duration-500" style="width: 0%"></div>
-                        </div>
-                    </div>
+                <div class="family-line"><span>家庭花費合計 · 不含代購</span><strong id="home-total-spent">$0</strong></div>
+            </section>
+            <section aria-label="本月消費明細" style="display:flex;flex-direction:column;gap:12px;min-width:0">
+                <div class="records-heading"><div><h3>日常明細</h3><p id="home-record-count">登入後查看本月紀錄</p></div><button class="quiet-button" onclick="toggleMonthlyDetailModal()" aria-label="開啟完整明細">完整明細</button></div>
+                <div class="filter-row" aria-label="代購篩選">
+                    <button data-proxy-filter="all" aria-pressed="true" onclick="setHomeFilter('all')">全部</button>
+                    <button data-proxy-filter="normal" aria-pressed="false" onclick="setHomeFilter('normal')">未標代購</button>
+                    <button data-proxy-filter="proxy" aria-pressed="false" onclick="setHomeFilter('proxy')">代購</button>
                 </div>
-
-                <!-- Card 2: Hsiang 花費 -->
-                <div class="min-w-[88%] md:min-w-0 snap-center flex-shrink-0 relative">
-                    <div class="absolute inset-0 bg-stone-300/80 translate-x-1 translate-y-1 border border-stone-400/40"></div>
-                    <div class="relative bg-white p-5 sm:p-6 border border-stone-300 flex flex-col justify-between space-y-3.5">
-                        <div class="flex items-center justify-between">
-                            <span class="text-lg sm:text-xl font-black text-[#4a4e51] tracking-wide">Hsiang 花費</span>
-                            <span id="home-hub-badge" class="text-sm font-comic font-black px-2.5 py-1 bg-[#f0f1f2] text-[#4a4e51] border border-[#d5d8db]">0%</span>
-                        </div>
-                        <div>
-                            <div class="text-4xl sm:text-5xl font-black font-comic tracking-tight text-stone-900" id="home-hub-spent">$0</div>
-                            <div class="text-base text-stone-600 mt-2 flex justify-between font-bold">
-                                <span>預算 <strong id="home-hub-budget" class="font-comic text-stone-800 text-lg">$0</strong></span>
-                                <span id="home-hub-rem-text" class="text-[#4a4e51] font-bold">剩餘 $0</span>
-                            </div>
-                        </div>
-                        <div class="w-full bg-stone-100 h-3 overflow-hidden">
-                            <div id="home-hub-bar" class="bg-[#4a4e51] h-3 transition-all duration-500" style="width: 0%"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Card 3: Ning 花費 -->
-                <div class="min-w-[88%] md:min-w-0 snap-center flex-shrink-0 relative">
-                    <div class="absolute inset-0 bg-stone-300/80 translate-x-1 translate-y-1 border border-stone-400/40"></div>
-                    <div class="relative bg-white p-5 sm:p-6 border border-stone-300 flex flex-col justify-between space-y-3.5">
-                        <div class="flex items-center justify-between">
-                            <span class="text-lg sm:text-xl font-black text-[#823a45] tracking-wide">Ning 花費</span>
-                            <span id="home-my-badge" class="text-sm font-comic font-black px-2.5 py-1 bg-[#f9f0f1] text-[#823a45] border border-[#ead8db]">0%</span>
-                        </div>
-                        <div>
-                            <div class="text-4xl sm:text-5xl font-black font-comic tracking-tight text-stone-900" id="home-my-spent">$0</div>
-                            <div class="text-base text-stone-600 mt-2 flex justify-between font-bold">
-                                <span>預算 <strong id="home-my-budget" class="font-comic text-stone-800 text-lg">$0</strong></span>
-                                <span id="home-my-rem-text" class="text-[#823a45] font-bold">剩餘 $0</span>
-                            </div>
-                        </div>
-                        <div class="w-full bg-stone-100 h-3 overflow-hidden">
-                            <div id="home-my-bar" class="bg-[#823a45] h-3 transition-all duration-500" style="width: 0%"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Daily Card Header & Action Icons -->
-            <div class="flex items-center justify-between pt-2">
-                <h3 class="text-lg sm:text-xl font-black text-stone-900 flex items-center">
-                    <i class="fa-regular fa-clock mr-2 text-stone-600"></i>近期記帳紀錄
-                </h3>
-                <div class="flex items-center space-x-2">
-                    <button onclick="toggleMonthlyDetailModal()" class="w-9 h-9 bg-stone-200 hover:bg-stone-300 text-stone-800 border border-stone-300 flex items-center justify-center transition active:scale-95 shadow-2xs" title="當月完整明細">
-                        <i class="fa-solid fa-list-check text-base"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Grouped Transaction List -->
-            <div class="space-y-4" id="home-daily-cards-container"></div>
-
+                <input class="home-search" id="home-search" type="search" placeholder="搜尋品名、備註、分類" aria-label="搜尋本月消費" oninput="homeDayLimit=10;renderDailyTransactionCards()">
+                <div id="home-daily-cards-container"></div>
+            </section>
+            <div hidden aria-hidden="true"><span id="home-month-label"></span><span id="home-year-label"></span><span id="home-month-highlight"></span><span id="home-date-today"></span><span id="home-status-my-text"></span><span id="home-status-hub-text"></span><span id="home-total-budget"></span><span id="home-total-rem-text"></span><span id="home-total-badge"></span><span id="home-total-bar"></span><span id="home-hub-badge"></span><span id="home-hub-bar"></span><span id="home-my-badge"></span><span id="home-my-bar"></span></div>
         </div>
 
         <!-- TAB 2: 報告 (REPORT) -->
@@ -277,78 +339,22 @@
             </div>
         </div>
 
-        <!-- TAB 3: 結算 (SETTLEMENT) -->
-        <div id="view-settlement" class="tab-view hidden space-y-5">
-            <!-- Boarding Pass Ticket Card -->
-            <div class="relative">
-                <div class="absolute inset-0 bg-stone-900 translate-x-1 translate-y-1"></div>
-                <div class="relative bg-[#3a4248] text-stone-100 p-4 sm:p-5 border border-stone-700">
-                    <div class="relative shadow-md rounded-xs">
-                        <div class="bg-white p-5 sm:p-6 text-stone-900 flex items-center justify-between rounded-t-xs">
-                            <div>
-                                <span class="text-xs sm:text-sm font-comic text-stone-400 font-bold tracking-widest uppercase block mb-1">Settlement Status</span>
-                                <div id="settle-hero-label" class="text-2xl sm:text-3xl font-black text-stone-900 tracking-wide">
-                                    計算結算中...
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="relative bg-white h-4 flex items-center justify-center">
-                            <div class="absolute -left-3.5 top-1/2 -translate-y-1/2 w-7 h-7 bg-[#3a4248] rounded-full z-10"></div>
-                            <div class="w-full border-b-2 border-dashed border-stone-300 mx-5"></div>
-                            <div class="absolute -right-3.5 top-1/2 -translate-y-1/2 w-7 h-7 bg-[#3a4248] rounded-full z-10"></div>
-                        </div>
-
-                        <div class="bg-stone-100 p-5 sm:p-6 text-stone-900 border-t border-stone-200 rounded-b-xs">
-                            <span class="text-xs sm:text-sm font-extrabold text-stone-500 block mb-1">對帳結算金額</span>
-                            <div id="settle-hero-amount" class="text-5xl sm:text-6xl font-black font-comic tracking-tight text-stone-900">
-                                $0
-                            </div>
-                        </div>
-                    </div>
+        <!-- TAB 3: Balance -->
+        <div id="view-settlement" class="tab-view hidden balance-page">
+            <section class="balance-stage" aria-labelledby="balance-title">
+                <header class="balance-heading"><h1 id="balance-title">Balance</h1><button class="balance-refresh" onclick="fetchDataFromGAS()" aria-label="重新整理結算">↻</button><p>目前待結清</p></header>
+                <div class="balance-pair">
+                    <article class="balance-person balance-hsiang" aria-label="Hsiang 的結算狀態"><div class="balance-monogram" aria-hidden="true">H</div><h2>Hsiang</h2><span class="balance-pill" id="settle-hsiang-status">待載入</span><div class="balance-money" id="settle-hero-amount">—</div></article>
+                    <span class="balance-direction" id="settle-direction" aria-hidden="true">·</span>
+                    <article class="balance-person balance-ning" aria-label="Ning 的結算狀態"><div class="balance-monogram" aria-hidden="true">N</div><h2>Ning</h2><span class="balance-pill" id="settle-ning-status">待載入</span><div class="balance-money" id="settle-ning-amount">—</div></article>
                 </div>
-            </div>
-
-            <!-- Transfer Records Card -->
-            <div class="relative">
-                <div class="absolute inset-0 bg-stone-300/80 translate-x-1 translate-y-1 border border-stone-400/40"></div>
-                <div class="relative bg-white p-5 sm:p-6 border border-stone-300 space-y-4">
-                    <div class="flex items-center justify-between border-b border-stone-200 pb-3">
-                        <h3 class="font-black text-lg sm:text-xl text-stone-900">銀行轉帳匯款紀錄</h3>
-                        <button onclick="toggleTransferModal()" class="bg-stone-800 hover:bg-stone-700 text-white text-base px-4 py-2 font-bold transition active:scale-95 flex items-center space-x-1.5">
-                            <i class="fa-solid fa-plus text-sm"></i>
-                            <span>新增轉帳</span>
-                        </button>
-                    </div>
-
-                    <!-- 匯款統計摘要區塊 -->
-                    <div class="grid grid-cols-2 gap-3 bg-stone-50 p-3.5 border border-stone-200 text-sm sm:text-base font-bold">
-                        <div>
-                            <span class="text-stone-500 text-xs block font-bold">Ning 轉給 Hsiang</span>
-                            <span id="stat-tf-ning" class="text-lg sm:text-xl font-comic font-black text-stone-900">$0</span>
-                        </div>
-                        <div>
-                            <span class="text-stone-500 text-xs block font-bold">Hsiang 轉給 Ning</span>
-                            <span id="stat-tf-hsiang" class="text-lg sm:text-xl font-comic font-black text-stone-900">$0</span>
-                        </div>
-                    </div>
-
-                    <div class="overflow-x-auto border border-stone-200">
-                        <table class="w-full text-left text-base text-stone-800">
-                            <thead class="bg-stone-100 text-stone-800 uppercase text-base border-b border-stone-200 font-bold">
-                                <tr>
-                                    <th class="py-3 px-3.5">日期</th>
-                                    <th class="py-3 px-3.5">轉帳人</th>
-                                    <th class="py-3 px-3.5">備註</th>
-                                    <th class="py-3 px-3.5 text-right">金額</th>
-                                    <th class="py-3 px-3.5 text-center">刪除</th>
-                                </tr>
-                            </thead>
-                            <tbody id="transfer-table-body" class="divide-y divide-stone-200 text-base sm:text-lg"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+            </section>
+            <p class="balance-explanation" id="settle-hero-label" role="status" aria-live="polite">登入後查看待轉金額</p>
+            <button class="balance-action" id="settle-record-button" onclick="toggleTransferModal()" disabled><span aria-hidden="true">＋</span> 記錄還款</button>
+            <section class="repayment-panel" aria-labelledby="repayment-title">
+                <div class="repayment-heading"><h2 id="repayment-title">還款紀錄</h2><button id="repayment-expand" onclick="toggleRepaymentHistory()" aria-expanded="false">查看全部 ›</button></div>
+                <div id="transfer-table-body" class="repayment-list"></div>
+            </section>
         </div>
 
         <!-- TAB 4: SETTINGS (設定分頁) -->
@@ -363,6 +369,7 @@
                             儲存預算
                         </button>
                     </div>
+                    <label class="block font-bold">預算生效月份 <input type="month" id="budget-effective-month" class="border border-stone-300 p-2" onchange="loadBudgetMonth()"></label>
                     <div class="overflow-x-auto border border-stone-200">
                         <table class="w-full text-left text-base text-stone-800">
                             <thead class="bg-stone-100 text-stone-800 uppercase text-base border-b border-stone-200 font-bold">
@@ -390,6 +397,8 @@
                             <label class="block font-bold text-stone-800 mb-1.5 text-base sm:text-lg font-comic">GAS Web App URL</label>
                             <input type="text" id="gas-api-url" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-white border border-stone-300 px-3.5 py-2.5 font-comic text-sm sm:text-base">
                         </div>
+                        <div><label class="block font-bold">家庭密碼</label><input type="password" id="family-password" autocomplete="current-password" class="w-full bg-white border border-stone-300 px-3 py-2"><button onclick="loginLedger()" class="mt-2 bg-stone-800 text-white px-4 py-2">登入</button><button onclick="logoutLedger()" class="ml-2 border border-stone-300 px-4 py-2">登出</button></div>
+                        <p id="connection-status" role="status" class="text-sm font-bold break-words"></p>
                         <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1">
                             <button onclick="saveGasUrlAndSync()" class="col-span-2 sm:col-span-1 bg-[#78866b] hover:bg-[#637057] text-white text-base py-3 font-bold font-comic transition">
                                 儲存並同步
@@ -413,12 +422,13 @@
         <div class="bg-white p-6 max-w-sm w-full border border-stone-400 shadow-xl space-y-4">
             <div class="flex justify-between items-center border-b border-stone-200 pb-3">
                 <h3 class="font-black text-stone-900 text-lg sm:text-xl flex items-center">
-                    <i class="fa-solid fa-paper-plane text-[#6b8299] mr-2 text-lg"></i>登記銀行轉帳匯款
+                    <i class="fa-solid fa-paper-plane text-[#6b8299] mr-2 text-lg"></i>記錄還款
                 </h3>
                 <button onclick="toggleTransferModal()" class="text-stone-400 hover:text-stone-700">
                     <i class="fa-solid fa-xmark text-xl"></i>
                 </button>
             </div>
+            <p class="text-sm text-stone-600">請在實際轉帳後登記；可修改金額，記錄部分還款。</p>
             <div class="space-y-3.5 text-base">
                 <div>
                     <label class="block font-bold text-stone-800 mb-1">匯款日期</label>
@@ -428,15 +438,15 @@
                     <div>
                         <label class="block font-bold text-stone-800 mb-1">轉出人</label>
                         <select id="tf-from" class="w-full bg-stone-50 border border-stone-300 p-2.5 font-bold text-base">
-                            <option value="Ning">Ning</option>
                             <option value="Hsiang">Hsiang</option>
+                            <option value="Ning">Ning</option>
                         </select>
                     </div>
                     <div>
                         <label class="block font-bold text-stone-800 mb-1">接收人</label>
                         <select id="tf-to" class="w-full bg-stone-50 border border-stone-300 p-2.5 font-bold text-base">
                             <option value="Hsiang">Hsiang</option>
-                            <option value="Ning">Ning</option>
+                            <option value="Ning" selected>Ning</option>
                         </select>
                     </div>
                 </div>
@@ -476,12 +486,12 @@
                     <div>
                         <select id="md-payer-filter" onchange="renderMonthlyDetailList()" class="w-full bg-white border border-stone-300 py-2 px-3 text-sm font-bold">
                             <option value="ALL">所有付款對象</option>
-                            <option value="Ning/2">Ning/2</option>
                             <option value="Hsiang/2">Hsiang/2</option>
-                            <option value="Ning">Ning</option>
+                            <option value="Ning/2">Ning/2</option>
                             <option value="Hsiang">Hsiang</option>
-                            <option value="甯墊">甯墊</option>
+                            <option value="Ning">Ning</option>
                             <option value="翔墊">翔墊</option>
+                            <option value="甯墊">甯墊</option>
                         </select>
                     </div>
                 </div>
@@ -509,16 +519,16 @@
     <nav class="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-stone-300 max-w-md sm:max-w-xl md:max-w-4xl lg:max-w-6xl mx-auto px-3 py-2.5">
         <div class="grid grid-cols-4 gap-1 text-center">
             <button onclick="switchTab('home')" id="nav-btn-home" class="nav-btn text-stone-900 flex flex-col items-center justify-center py-2 transition active:scale-95">
-                <i class="fa-solid fa-house text-2xl"></i>
+                <i class="fa-solid fa-house text-2xl"></i><span>首頁</span>
             </button>
             <button onclick="switchTab('report')" id="nav-btn-report" class="nav-btn text-stone-400 hover:text-stone-700 flex flex-col items-center justify-center py-2 transition active:scale-95">
-                <i class="fa-solid fa-chart-pie text-2xl"></i>
+                <i class="fa-solid fa-chart-pie text-2xl"></i><span>報表</span>
             </button>
             <button onclick="switchTab('settlement')" id="nav-btn-settlement" class="nav-btn text-stone-400 hover:text-stone-700 flex flex-col items-center justify-center py-2 transition active:scale-95">
-                <i class="fa-solid fa-scale-balanced text-2xl"></i>
+                <i class="fa-solid fa-scale-balanced text-2xl"></i><span>結算</span>
             </button>
             <button onclick="switchTab('settings')" id="nav-btn-settings" class="nav-btn text-stone-400 hover:text-stone-700 flex flex-col items-center justify-center py-2 transition active:scale-95">
-                <i class="fa-solid fa-sliders text-2xl"></i>
+                <i class="fa-solid fa-sliders text-2xl"></i><span>設定</span>
             </button>
         </div>
     </nav>
@@ -542,9 +552,10 @@
             '北鼻': { iconHtml: '<i class="fi fi-br-child-head"></i>', color: 'text-[#e0a96d]', hex: '#e0a96d' }
         };
 
+        function escapeHtml(v) { return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
         function getCategoryIconBadge(category) {
             const style = categoryIcons[category] || categoryIcons['其他'];
-            return `<div class="w-8 h-8 flex items-center justify-center text-xl flex-shrink-0 ${style.color}" title="${category}">${style.iconHtml}</div>`;
+            return `<div class="w-8 h-8 flex items-center justify-center text-xl flex-shrink-0 ${style.color}" title="${escapeHtml(category)}">${style.iconHtml}</div>`;
         }
 
         function getPayerBadge(payer) {
@@ -557,24 +568,14 @@
                 '翔墊': 'bg-[#f0f1f2] text-[#4a4e51] border-[#d5d8db] font-bold'
             };
             const style = styles[payer] || 'bg-stone-100 text-stone-700 border-stone-300';
-            return `<span class="${style} text-xs px-1.5 py-0.5 border font-comic">${payer}</span>`;
+            return `<span class="${style} text-xs px-1.5 py-0.5 border font-comic">${escapeHtml(payer)}</span>`;
         }
 
         function getPaymentMethodBadge(method) {
-            return `<span class="bg-stone-100 text-stone-700 border border-stone-300 text-xs px-1.5 py-0.5 font-bold">${method}</span>`;
+            return `<span class="bg-stone-100 text-stone-700 border border-stone-300 text-xs px-1.5 py-0.5 font-bold">${escapeHtml(method)}</span>`;
         }
 
-        let demoTransactions = [
-            { id: 101, date: '2026-10-28', category: '飲食', item: '晚餐 - 日式拉麵', amount: 640, payer: 'Ning/2', method: '信用卡', note: '信義區', isProxy: false },
-            { id: 102, date: '2026-10-28', category: '帕布', item: '貓咪罐頭與貓砂補貨', amount: 850, payer: 'Ning/2', method: '轉帳', note: '寵物公園', isProxy: false },
-            { id: 103, date: '2026-10-28', category: '雜支', item: '全家超商飲料零食', amount: 125, payer: 'Hsiang', method: '悠遊卡', note: '補貨', isProxy: false },
-            { id: 104, date: '2026-10-27', category: '8510', item: '加油站加滿 95 無鉛汽油', amount: 1280, payer: 'Hsiang/2', method: '信用卡', note: '中油直營', isProxy: false },
-            { id: 105, date: '2026-10-27', category: '飲食', item: '外帶午餐便當 2 份', amount: 240, payer: 'Ning/2', method: '現金', note: '公司附近', isProxy: false }
-        ];
-
-        let transferRecords = [
-            { id: 1, date: '2026-10-28', from: 'Ning', to: 'Hsiang', amount: 21000, note: '10月生活費平帳' }
-        ];
+        let transferRecords = [];
 
         let defaultBudgets = {
             '居住': { myLimit: 8000, hubLimit: 8000 },
@@ -590,11 +591,13 @@
         };
 
         const todayObj = new Date();
-        const currentTodayStr = todayObj.toISOString().split('T')[0];
-        let currentTransactions = [...demoTransactions];
+        const currentTodayStr = new Intl.DateTimeFormat('en-CA', {timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit'}).format(todayObj);
+        let currentTransactions = [];
+        let budgetRows = [];
+        let loaded = false;
         let currentYearMonth = currentTodayStr.substring(0, 7);
         let reportMode = 'month';
-        let currentReportYear = todayObj.getFullYear();
+        let currentReportYear = Number(currentTodayStr.slice(0,4));
         let reportChartInstance = null;
 
         window.onload = function() {
@@ -605,6 +608,7 @@
             if (savedUrl) {
                 fetchDataFromGAS();
             } else {
+                applyBudget(currentYearMonth);
                 renderHome();
                 renderReport();
                 renderSettlement();
@@ -612,58 +616,85 @@
             }
         };
 
-        function saveGasUrlAndSync() {
-            const urlInput = document.getElementById('gas-api-url')?.value.trim();
-            if (!urlInput) {
-                showToast('請先輸入 GAS Web App URL');
-                return;
+        function normalizeGasUrl(raw) {
+            let u;
+            try {u=new URL(String(raw||'').trim());}catch(e){throw Error('GAS 網址格式不完整，請貼上管理部署中的完整網頁應用程式網址');}
+            if(u.protocol!=='https:'||u.hostname!=='script.google.com'||u.port||u.username||u.password) throw Error('請使用 script.google.com 的 GAS 部署網址，不是 GitHub 或重新導向網址');
+            const path=u.pathname.replace(/\/u\/\d+(?=\/)/g,'').replace(/\/+$/,'');
+            const match=/^\/(?:macros\/s|a\/macros\/[^/]+\/s)\/([A-Za-z0-9_-]+)\/(exec|dev)$/.exec(path);
+            if(!match) throw Error('GAS 網址缺少部署 ID 或 /exec，請從管理部署重新複製');
+            if(match[2]!=='exec') throw Error('這是測試用 /dev 網址，請改用部署的 /exec 網址');
+            return 'https://script.google.com/macros/s/'+match[1]+'/exec';
+        }
+        function resolveGasUrl() {
+            const input=document.getElementById('gas-api-url');
+            const old=localStorage.getItem('gas_api_url')||'';
+            const url=normalizeGasUrl(input?.value.trim()||old);
+            let previous='';try {previous=normalizeGasUrl(old);}catch(e){}
+            if(previous!==url) {
+                token='';localStorage.removeItem('ledger_token');loaded=false;
+                currentTransactions=[];transferRecords=[];budgetRows=[];pendingTransfer=null;
             }
-            localStorage.setItem('gas_api_url', urlInput);
-            showToast('已儲存網址！開始同步雲端資料...');
-            fetchDataFromGAS();
+            localStorage.setItem('gas_api_url',url);
+            if(input) input.value=url;
+            return url;
+        }
+        function connectionStatus(text) {
+            const el=document.getElementById('connection-status');if(el) el.textContent=text;
+        }
+        function saveGasUrlAndSync() {
+            try {resolveGasUrl();connectionStatus('GAS 網址已儲存。');fetchDataFromGAS();}
+            catch(e){connectionStatus(e.message);showToast(e.message);}
         }
 
-        function fetchDataFromGAS() {
-            const apiUrl = localStorage.getItem('gas_api_url') || document.getElementById('gas-api-url')?.value.trim();
-            if (!apiUrl) {
-                showToast('尚未設定 GAS URL');
-                return;
+        let budgetVersion = '';
+        let token = localStorage.getItem('ledger_token') || '';
+        let busy = false;
+        let pendingTransfer = null;
+        async function api(payload) {
+            const url=resolveGasUrl();
+            const res=await fetch(url,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({...payload,token})});
+            if(!res.ok) throw Error('伺服器回應失敗');
+            const text=await res.text();
+            let data;try {data=JSON.parse(text);}catch(e){throw Error('GAS 未回傳 JSON，請確認這個部署使用新版程式並允許所有人存取');}
+            if(data.status!=='success') {
+                if(String(data.message).includes('AUTH:')) {token='';localStorage.removeItem('ledger_token');}
+                throw Error(data.message||'操作失敗');
             }
-
-            const yearStr = currentYearMonth.split('-')[0];
-            const fetchUrl = `${apiUrl}?year=${yearStr}&t=${new Date().getTime()}`;
-
-            showToast('正在與 Google Sheets 同步中...');
-
-            fetch(fetchUrl)
-                .then(res => res.json())
-                .then(res => {
-                    if (res.status === 'success') {
-                        if (res.transactions) {
-                            currentTransactions = res.transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
-                        }
-                        if (res.transfers) transferRecords = res.transfers;
-                        if (res.budgets && Object.keys(res.budgets).length > 0) {
-                            Object.keys(res.budgets).forEach(cat => {
-                                if (defaultBudgets[cat]) {
-                                    defaultBudgets[cat].hubLimit = res.budgets[cat].hubLimit || defaultBudgets[cat].hubLimit;
-                                    defaultBudgets[cat].myLimit = res.budgets[cat].myLimit || defaultBudgets[cat].myLimit;
-                                }
-                            });
-                        }
-                        renderHome();
-                        renderReport();
-                        renderSettlement();
-                        renderBudgetInputs();
-                        showToast('已順利載入 Google Sheets 真實資料！');
-                    } else {
-                        showToast('同步失敗：' + (res.message || '未知錯誤'));
-                    }
-                })
-                .catch(err => {
-                    console.error(err);
-                    showToast('讀取失敗，請確認 URL 是否正確部署為所有人權限');
-                });
+            if(payload.action==='login' && (typeof data.token!=='string'||!data.token)) throw Error('此部署未回傳登入憑證，可能仍使用舊版程式，請確認部署版本');
+            return data;
+        }
+        async function loginLedger() {
+            const input=document.getElementById('family-password');
+            if(!input.value){connectionStatus('請輸入家庭密碼');return;}
+            try {
+                resolveGasUrl();connectionStatus('正在連線並驗證家庭密碼…');
+                const data=await api({action:'login',password:input.value});
+                token=data.token;localStorage.setItem('ledger_token',token);input.value='';
+                connectionStatus('登入成功，正在讀取帳本…');await fetchDataFromGAS();
+            } catch(e){
+                const message=String(e.message).includes('密碼不正確')?'已連上 GAS，但該專案未接受這組家庭密碼。請確認此網址屬於剛設定 FAMILY_PASSWORD 的 Apps Script 專案；此處不是輸入 SHORTCUT_KEY。':e.message;
+                connectionStatus(message);showToast(message);
+            }
+        }
+        async function logoutLedger() {
+            try {await api({action:'logout'});} catch(e) {}
+            token='';localStorage.removeItem('ledger_token');currentTransactions=[];transferRecords=[];budgetRows=[];loaded=false;
+            renderAll();showToast('已登出');
+        }
+        function acceptData(res) {
+            currentTransactions=res.transactions.sort((a,b)=>b.date.localeCompare(a.date));
+            transferRecords=res.transfers;budgetRows=res.budgetRows||[];budgetVersion=res.budgetVersion||'';loaded=true;
+            for(const cat of [...currentTransactions.map(t=>t.category),...budgetRows.map(r=>r.category),...Object.keys(categoryIcons)]) {
+                if(!Object.hasOwn(defaultBudgets,cat)) Object.defineProperty(defaultBudgets,cat,{value:{hubLimit:0,myLimit:0},enumerable:true,writable:true});
+            }
+            renderAll();
+        }
+        function renderAll() {applyBudget(currentYearMonth);renderHome();renderReport();renderSettlement();renderBudgetInputs();}
+        async function fetchDataFromGAS() {
+            if(!token) {connectionStatus('請輸入家庭密碼登入');showToast('請先到設定輸入家庭密碼登入');return;}
+            try {acceptData(await api({action:'read',year:'all'}));connectionStatus('已登入，帳本資料已更新');showToast('資料已更新');}
+            catch(e){connectionStatus('讀取失敗：'+e.message);showToast('讀取失敗：'+e.message);}
         }
 
         function switchTab(tabName) {
@@ -688,40 +719,55 @@
             if (tabName === 'settings') renderBudgetInputs();
         }
 
+        function applyBudget(month) {
+            const current = Object.create(null);
+            budgetRows.filter(r => r.month <= month).sort((a,b) => a.month.localeCompare(b.month)).forEach(r => { current[r.category] = r; });
+            Object.keys(defaultBudgets).forEach(cat => {
+                const b = current[cat];
+                defaultBudgets[cat].hubLimit = b ? b.hubLimit : 0;
+                defaultBudgets[cat].myLimit = b ? b.myLimit : 0;
+            });
+        }
+        function shares(tx) {
+            const amount = Number(tx.amount) || 0;
+            switch (tx.payer) {
+                case 'Ning': return {my:amount, hub:0, debt:0};
+                case 'Hsiang': return {my:0, hub:amount, debt:0};
+                case 'Ning/2': { const hub=Math.round(amount/2); return {my:amount-hub, hub, debt:hub}; }
+                case 'Hsiang/2': { const my=Math.round(amount/2); return {my, hub:amount-my, debt:-my}; }
+                case '甯墊': return {my:0, hub:amount, debt:amount};
+                case '翔墊': return {my:amount, hub:0, debt:-amount};
+                default: return {my:0,hub:0,debt:0};
+            }
+        }
+        async function writeThenVerify(payload) {
+            if(!loaded) throw Error('請先登入並載入資料');
+            if(busy) throw Error('上一個操作仍在處理中');
+            busy=true;
+            try {
+                const result=await api(payload);
+                try {acceptData(await api({action:'read',year:'all'}));}
+                catch(e) {showToast('已寫入，但重新讀取失敗，請按重新整理');}
+                return result;
+            } finally {busy=false;renderDailyTransactionCards();}
+        }
         function getFilteredTransactions() {
             return currentTransactions.filter(tx => tx.date.startsWith(currentYearMonth));
         }
 
-        function toggleProxyStatus(txId) {
-            const tx = currentTransactions.find(t => t.id === txId);
-            if (tx) {
-                tx.isProxy = !tx.isProxy;
-                
-                renderHome();
-                renderReport();
-                renderSettlement();
-
-                const apiUrl = localStorage.getItem('gas_api_url');
-                if (apiUrl) {
-                    fetch(apiUrl, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            action: 'toggleProxy',
-                            id: tx.id,
-                            date: tx.date,
-                            isProxy: tx.isProxy
-                        })
-                    }).then(() => {
-                        showToast(tx.isProxy ? '已設為代購（不計入花費）' : '已取消代購標記');
-                    }).catch(err => console.error(err));
-                }
-            }
+        async function toggleProxyStatus(txId) {
+            const tx=currentTransactions.find(t=>t.id===txId);
+            if (!tx) return;
+            const desired=!tx.isProxy;
+            try {
+                await writeThenVerify({action:'toggleProxy',id:tx.id,date:tx.date,isProxy:desired,expectedUpdatedAt:tx.updatedAt},
+                    res=>res.transactions.some(t=>t.id===tx.id&&t.isProxy===desired&&t.updatedAt!==tx.updatedAt));
+                showToast(desired?'已標記代購，欠款仍保留':'已取消代購');
+            } catch(e) { showToast('更新失敗：'+e.message); fetchDataFromGAS(); } finally {renderDailyTransactionCards();}
         }
 
         function getSpends(txList) {
-            const spends = {};
+            const spends = Object.create(null);
             Object.keys(defaultBudgets).forEach(cat => {
                 spends[cat] = { mySpent: 0, hubSpent: 0, totalSpent: 0 };
             });
@@ -735,7 +781,7 @@
                 const p = String(tx.payer || '').trim();
                 if (p === 'Ning') { myB = amt; }
                 else if (p === 'Hsiang') { hubB = amt; }
-                else if (p === 'Ning/2' || p === 'Hsiang/2') { myB = amt / 2; hubB = amt / 2; }
+                else if (p === 'Ning/2' || p === 'Hsiang/2') { const split=shares(tx); myB=split.my; hubB=split.hub; }
                 else if (p === '甯墊') { hubB = amt; }
                 else if (p === '翔墊') { myB = amt; }
 
@@ -747,7 +793,27 @@
             return spends;
         }
 
+        let homeProxyFilter='all';
+        let homeDayLimit=10;
+        function selectHomeMonth(month) {
+            if(!/^20\d{2}-(0[1-9]|1[0-2])$/.test(month)) return;
+            currentYearMonth=month;currentReportYear=Number(month.slice(0,4));homeDayLimit=10;
+            const search=document.getElementById('home-search');if(search) search.value='';
+            renderAll();
+        }
+        function navigateHomeMonth(delta) {
+            const [year,month]=currentYearMonth.split('-').map(Number);
+            const date=new Date(Date.UTC(year,month-1+delta,1));selectHomeMonth(date.toISOString().slice(0,7));
+        }
+        function setHomeFilter(filter) {
+            homeProxyFilter=filter;homeDayLimit=10;
+            document.querySelectorAll('[data-proxy-filter]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.proxyFilter===filter)));
+            renderDailyTransactionCards();
+        }
         function renderHome() {
+            document.getElementById('home-period-label').textContent=currentYearMonth.slice(0,4)+' 年 '+Number(currentYearMonth.slice(5))+' 月';
+            document.getElementById('home-month-picker').value=currentYearMonth;
+            applyBudget(currentYearMonth);
             const txList = getFilteredTransactions();
             const spends = getSpends(txList);
 
@@ -766,6 +832,9 @@
                 totalSpent += s.totalSpent;
             });
 
+            Object.keys(spends).filter(cat=>!defaultBudgets[cat]).forEach(cat=>{
+                mySpent+=spends[cat].mySpent; hubSpent+=spends[cat].hubSpent; totalSpent+=spends[cat].totalSpent;
+            });
             const parts = currentYearMonth.split('-');
             const monthIdx = parseInt(parts[1], 10) - 1;
 
@@ -803,80 +872,32 @@
             document.getElementById('home-my-bar').style.width = `${Math.min(myPct, 100)}%`;
             document.getElementById('home-my-rem-text').innerText = myBudget - mySpent >= 0 ? `剩餘 $${Math.round(myBudget - mySpent).toLocaleString()}` : `超支 $${Math.round(mySpent - myBudget).toLocaleString()}`;
 
+            if(!myBudget) document.getElementById('home-my-rem-text').textContent='尚未設定預算';
+            if(!hubBudget) document.getElementById('home-hub-rem-text').textContent='尚未設定預算';
             renderDailyTransactionCards();
         }
 
         function renderDailyTransactionCards() {
-            const container = document.getElementById('home-daily-cards-container');
-            if (!container) return;
-            container.innerHTML = '';
-
-            const grouped = {};
-            const sortedTx = [...currentTransactions].sort((a, b) => new Date(b.date) - new Date(a.date));
-
-            sortedTx.forEach(tx => {
-                if (!grouped[tx.date]) grouped[tx.date] = [];
-                grouped[tx.date].push(tx);
-            });
-
-            const sortedDates = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a)).slice(0, 5);
-
-            if (sortedDates.length === 0) {
-                container.innerHTML = `<div class="p-8 text-center text-stone-400 font-bold bg-white border border-stone-300">本月尚無記帳紀錄</div>`;
-                return;
-            }
-
-            sortedDates.forEach(date => {
-                const daySum = grouped[date].filter(t => !t.isProxy).reduce((sum, item) => sum + item.amount, 0);
-                
-                let dateDisplay = date.replace(/-/g, '/');
-                if (date === currentTodayStr) dateDisplay = `${date.substring(5).replace('-', '/')} 今天`;
-
-                const cardWrapper = document.createElement('div');
-                cardWrapper.className = "relative";
-                
-                let itemsHtml = '';
-                grouped[date].forEach(tx => {
-                    const textStyle = tx.isProxy ? 'line-through text-stone-400' : 'text-stone-900';
-                    const amountStyle = tx.isProxy ? 'line-through text-stone-400' : 'text-stone-900';
-                    const displayTitle = tx.item || tx.subcategory || tx.category || '未命名項目';
-                    const displaySub = tx.subcategory && tx.item ? tx.subcategory : (tx.note || '');
-
-                    itemsHtml += `
-                        <div class="p-3 sm:p-4 flex items-center justify-between border-b border-stone-200 last:border-b-0">
-                            <div class="flex items-center space-x-3">
-                                <input type="checkbox" ${tx.isProxy ? 'checked' : ''} onchange="toggleProxyStatus(${tx.id})" class="w-4 h-4 accent-stone-800 cursor-pointer">
-                                ${getCategoryIconBadge(tx.category)}
-                                <div>
-                                    <div class="font-black text-base sm:text-lg ${textStyle}">${displayTitle}</div>
-                                    <div class="text-xs text-stone-400 font-comic mt-0.5">${displaySub}</div>
-                                </div>
-                            </div>
-                            <div class="text-right flex flex-col items-end">
-                                <div class="font-black text-lg sm:text-xl font-comic ${amountStyle}">$${tx.amount.toLocaleString()}</div>
-                                <div class="mt-1 flex items-center space-x-1">
-                                    ${getPayerBadge(tx.payer)}
-                                    ${getPaymentMethodBadge(tx.method || '現金')}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                });
-
-                cardWrapper.innerHTML = `
-                    <div class="absolute inset-0 bg-stone-300/80 translate-x-1 translate-y-1 border border-stone-400/40"></div>
-                    <div class="relative bg-white border border-stone-300 overflow-hidden">
-                        <div class="bg-stone-100 px-4 py-2.5 border-b border-stone-200 flex items-center justify-between">
-                            <span class="font-comic text-base sm:text-lg font-black text-stone-900">${dateDisplay}</span>
-                            <span class="text-xs sm:text-sm font-comic font-bold text-stone-700">小計 $${daySum.toLocaleString()}</span>
-                        </div>
-                        <div class="divide-y divide-stone-200">
-                            ${itemsHtml}
-                        </div>
-                    </div>
-                `;
-                container.appendChild(cardWrapper);
-            });
+            const container=document.getElementById('home-daily-cards-container');
+            if(!container) return;
+            const search=(document.getElementById('home-search')?.value||'').trim().toLowerCase();
+            const monthList=getFilteredTransactions();
+            const list=monthList.filter(tx=>(homeProxyFilter==='all'||(homeProxyFilter==='proxy'?tx.isProxy:!tx.isProxy))&&[tx.subcategory,tx.note,tx.category,tx.payer].some(v=>String(v||'').toLowerCase().includes(search))).sort((a,b)=>b.date.localeCompare(a.date));
+            const count=document.getElementById('home-record-count');if(count) count.textContent=loaded?`${monthList.length} 筆紀錄 · ${monthList.filter(t=>t.isProxy).length} 筆代購`:'登入後查看本月紀錄';
+            if(!list.length) {container.innerHTML=`<div class="empty-state">${!loaded?'登入後，兩人的日常消費會顯示在這裡。':monthList.length?'沒有符合條件的紀錄，試試其他篩選。':'這個月還沒有紀錄。'}</div>`;return;}
+            const groups=Object.create(null);for(const tx of list) (groups[tx.date]??=[]).push(tx);
+            const dates=Object.keys(groups).sort().reverse();
+            container.innerHTML=dates.slice(0,homeDayLimit).map(date=>{
+                const allDay=monthList.filter(tx=>tx.date===date&&!tx.isProxy).reduce((sum,t)=>sum+t.amount,0);
+                const title=date===currentTodayStr?'今天 · '+date.slice(5).replace('-','/') : date.slice(5).replace('-','/');
+                const rows=groups[date].map(tx=>`<article class="transaction-row ${tx.isProxy?'proxy':''}">
+                    <div class="tx-details"><span class="tx-category-icon" role="img" aria-label="分類：${escapeHtml(tx.category)}">${getCategoryIconBadge(tx.category)}</span><div class="tx-copy"><div class="tx-title">${escapeHtml(tx.item||tx.subcategory||tx.category||'未命名項目')}</div>${tx.note?`<div class="tx-note">${escapeHtml(tx.note)}</div>`:''}</div></div>
+                    <div class="tx-amount">$${Number(tx.amount).toLocaleString()}</div>
+                    <div class="tx-badges"><span>${escapeHtml(tx.payer)}</span><span>${escapeHtml(tx.method||'現金')}</span></div>
+                    <label class="proxy-toggle"><input type="checkbox" data-tx-id="${escapeHtml(tx.id)}" ${tx.isProxy?'checked':''} ${busy?'disabled':''} onchange="this.disabled=true;toggleProxyStatus(this.dataset.txId)" aria-label="${escapeHtml(tx.subcategory||tx.category)}：標記代購"><span>代購${tx.isProxy?' ✓':''}</span></label>
+                </article>`).join('');
+                return `<section class="day-group"><div class="day-label"><strong>${title}</strong><span>當日支出 $${allDay.toLocaleString()}</span></div><div class="day-list">${rows}</div></section>`;
+            }).join('')+(dates.length>homeDayLimit?'<button class="load-more" onclick="homeDayLimit+=10;renderDailyTransactionCards()">顯示更多紀錄</button>':'');
         }
 
         // REPORT
@@ -904,10 +925,11 @@
                 if (month < 1) { month = 12; year--; }
                 currentYearMonth = `${year}-${String(month).padStart(2, '0')}`;
                 currentReportYear = year;
+                applyBudget(currentYearMonth);
             } else {
                 currentReportYear += delta;
             }
-            renderReport();
+            renderAll();
         }
 
         function renderReport() {
@@ -921,7 +943,7 @@
 
             if (reportMode === 'month') {
                 txList = getFilteredTransactions().filter(t => !t.isProxy);
-                if (periodTitleEl) periodTitleEl.innerText = `${monthNamesEnglish[monthIdx]} ${parts[0]}`;
+                if (periodTitleEl) periodTitleEl.innerText = `${parts[0]} 年 ${monthIdx+1} 月`;
                 if (periodHighlightEl) {
                     periodHighlightEl.classList.remove('hidden');
                     periodHighlightEl.className = `absolute bottom-0.5 left-0 w-[75%] h-3 ${monthHighlighterColors[monthIdx]} rounded-xs -z-0`;
@@ -935,7 +957,7 @@
                 if (chartTitleEl) chartTitleEl.innerText = `${currentReportYear} 全年類別花費占比`;
             }
 
-            const categoryTotals = {};
+            const categoryTotals = Object.create(null);
             let totalAmount = 0;
 
             const categorySpends = spendsFromList(txList);
@@ -955,7 +977,7 @@
         }
 
         function spendsFromList(txList) {
-            const spends = {};
+            const spends = Object.create(null);
             Object.keys(defaultBudgets).forEach(cat => {
                 spends[cat] = { mySpent: 0, hubSpent: 0, totalSpent: 0 };
             });
@@ -969,7 +991,7 @@
                 const p = String(tx.payer || '').trim();
                 if (p === 'Ning') { myB = amt; }
                 else if (p === 'Hsiang') { hubB = amt; }
-                else if (p === 'Ning/2' || p === 'Hsiang/2') { myB = amt / 2; hubB = amt / 2; }
+                else if (p === 'Ning/2' || p === 'Hsiang/2') { const split=shares(tx); myB=split.my; hubB=split.hub; }
                 else if (p === '甯墊') { hubB = amt; }
                 else if (p === '翔墊') { myB = amt; }
 
@@ -981,6 +1003,13 @@
             return spends;
         }
 
+        function annualBudget(cat,person) {
+            return Array.from({length:12},(_,i)=>{
+                const month=`${currentReportYear}-${String(i+1).padStart(2,'0')}`;
+                const r=budgetRows.filter(r=>r.category===cat&&r.month<=month).sort((a,b)=>b.month.localeCompare(a.month))[0];
+                return r?(person==='me'?r.myLimit:r.hubLimit):0;
+            }).reduce((a,b)=>a+b,0);
+        }
         function renderPersonBudgetCard(person, mode) {
             const isYear = mode === 'year';
             const multiplier = isYear ? 12 : 1;
@@ -989,6 +1018,7 @@
                 : getFilteredTransactions().filter(t => !t.isProxy);
 
             const spends = spendsFromList(txScope);
+            applyBudget(currentYearMonth);
 
             let targetBudget = 0;
             let totalSpent = 0;
@@ -996,10 +1026,11 @@
             Object.keys(defaultBudgets).forEach(cat => {
                 const b = defaultBudgets[cat];
                 const s = spends[cat] || { mySpent: 0, hubSpent: 0 };
-                targetBudget += (person === 'me' ? b.myLimit : b.hubLimit) * multiplier;
+                targetBudget += isYear ? annualBudget(cat,person) : (person==='me'?b.myLimit:b.hubLimit);
                 totalSpent += (person === 'me' ? s.mySpent : s.hubSpent);
             });
 
+            Object.keys(spends).filter(cat=>!defaultBudgets[cat]).forEach(cat=>{totalSpent += person==='me'?spends[cat].mySpent:spends[cat].hubSpent;});
             const pct = targetBudget > 0 ? Math.min(Math.round((totalSpent / targetBudget) * 100), 999) : 0;
 
             document.getElementById(`${person}-card-spent`).innerText = `$${Math.round(totalSpent).toLocaleString()}`;
@@ -1011,14 +1042,14 @@
             if (container) {
                 container.innerHTML = '';
                 Object.keys(defaultBudgets).forEach(cat => {
-                    const limit = (person === 'me' ? defaultBudgets[cat].myLimit : defaultBudgets[cat].hubLimit) * multiplier;
+                    const limit = isYear ? annualBudget(cat,person) : (person==='me'?defaultBudgets[cat].myLimit:defaultBudgets[cat].hubLimit);
                     const spent = person === 'me' ? (spends[cat]?.mySpent || 0) : (spends[cat]?.hubSpent || 0);
                     const catPct = limit > 0 ? Math.min(Math.round((spent / limit) * 100), 999) : 0;
 
                     const row = document.createElement('div');
                     row.className = "flex items-center justify-between text-sm sm:text-base font-bold";
                     row.innerHTML = `
-                        <span class="text-stone-800 font-bold">${cat}</span>
+                        <span class="text-stone-800 font-bold">${escapeHtml(cat)}</span>
                         <div class="flex items-center space-x-2">
                             <span class="font-comic text-stone-500 font-semibold">$${Math.round(spent)} / $${limit}</span>
                             <span class="font-comic font-black w-9 text-right ${catPct >= 100 ? 'text-[#823a45]' : 'text-stone-900'}">${catPct}%</span>
@@ -1059,27 +1090,69 @@
             });
         }
 
+        // 已由使用者確認：11/11 平帳，消費結清到 11/10（含）。
+        // 此設定只影響目前欠款，不變更歷史消費、預算或實際轉帳紀錄。
+        let settlementBaseline = {
+            settledThrough: '2026-11-10',
+            closingTransfer: {date:'2026-11-11',from:'Hsiang',to:'Ning',amount:52807}
+        };
+        function closingTransferId() {
+            if(!settlementBaseline) return null;
+            const closing=settlementBaseline.closingTransfer;
+            const matches=transferRecords.filter(t=>t.date===closing.date && String(t.from).trim()===closing.from && String(t.to).trim()===closing.to && Number(t.amount)===closing.amount);
+            if(matches.length!==1 || !matches[0].id) throw Error(matches.length>1?'找到多筆 11/11、52,807 元平帳轉帳，請確認重複紀錄':'找不到 11/11 Hsiang → Ning 52,807 元的平帳轉帳，請確認 Transfers');
+            const id=String(matches[0].id);
+            if(transferRecords.filter(t=>String(t.id)===id).length!==1) throw Error('平帳轉帳的 ID 重複，請確認 Transfers');
+            return id;
+        }
+        function settlementTransferStatus(tf, closingId) {
+            if(!settlementBaseline) return '';
+            if(tf.date<=settlementBaseline.settledThrough) return '歷史還款，已結清';
+            if(String(tf.id)===closingId) return '結清至 11/10，不抵扣新帳';
+            return '本期還款';
+        }
+        let settlementBalance=null;
+        let showAllRepayments=false;
+        function presentSettlement(balance,reason) {
+            settlementBalance=balance;
+            const unknown=balance===null;
+            const amount=unknown?'—':'$'+Math.abs(Math.round(balance)).toLocaleString();
+            const label=document.getElementById('settle-hero-label');
+            label.textContent=unknown?reason:balance>0?'Hsiang 應轉給 Ning':balance<0?'Ning 應轉給 Hsiang':'目前已平帳';
+            document.getElementById('settle-hero-amount').textContent=amount;
+            document.getElementById('settle-ning-amount').textContent=amount;
+            document.getElementById('settle-direction').textContent=unknown?'·':balance>0?'→':balance<0?'←':'✓';
+            for(const person of ['hsiang','ning']) {
+                const el=document.getElementById('settle-'+person+'-status');
+                const payer=person==='hsiang'?balance>0:balance<0;
+                el.textContent=unknown?'待確認':balance===0?'已平帳':payer?'待轉帳':'待收款';
+                el.dataset.state=unknown?'unknown':balance===0?'settled':payer?'pay':'receive';
+            }
+            document.getElementById('settle-record-button').disabled=unknown;
+        }
         // SETTLEMENT
         function renderSettlement() {
             let hsiangOwesNingSum = 0;
             let ningOwesHsiangSum = 0;
 
-            const currentYearStr = currentYearMonth.split('-')[0];
-            const yearTxList = currentTransactions.filter(tx => tx.date && tx.date.startsWith(currentYearStr) && !tx.isProxy);
+            let closingId;
+            try { closingId=loaded?closingTransferId():null; }
+            catch(e) {
+                presentSettlement(null,'平帳紀錄待確認');
+                showToast(e.message); renderTransferTable(); return;
+            }
+            const cutoff=settlementBaseline?.settledThrough||'';
+            const yearTxList = currentTransactions.filter(tx => tx.date && tx.date > cutoff && tx.date <= currentTodayStr);
 
             yearTxList.forEach(tx => {
-                const amt = Number(tx.amount) || 0;
-                const p = String(tx.payer || '').trim();
-
-                if (p === 'Ning/2') { hsiangOwesNingSum += amt / 2; }
-                else if (p === 'Hsiang/2') { ningOwesHsiangSum += amt / 2; }
-                else if (p === '甯墊') { hsiangOwesNingSum += amt; }
-                else if (p === '翔墊') { ningOwesHsiangSum += amt; }
+                const debt=shares(tx).debt;
+                if (debt>0) hsiangOwesNingSum+=debt;
+                else ningOwesHsiangSum-=debt;
             });
 
             const netExpenseDiff = ningOwesHsiangSum - hsiangOwesNingSum;
 
-            const yearTransfers = transferRecords.filter(tf => tf.date && tf.date.startsWith(currentYearStr));
+            const yearTransfers = transferRecords.filter(tf => tf.date && tf.date > cutoff && tf.date <= currentTodayStr && String(tf.id)!==closingId);
 
             let totalTransferred = 0;
             let ningTransferredTotal = 0;
@@ -1095,144 +1168,64 @@
                 }
             });
 
-            const statNingEl = document.getElementById('stat-tf-ning');
-            const statHsiangEl = document.getElementById('stat-tf-hsiang');
-            if (statNingEl) statNingEl.innerText = `$${Math.round(ningTransferredTotal).toLocaleString()}`;
-            if (statHsiangEl) statHsiangEl.innerText = `$${Math.round(hsiangTransferredTotal).toLocaleString()}`;
-
             const finalNetBalance = totalTransferred - netExpenseDiff;
-
-            const heroLabelEl = document.getElementById('settle-hero-label');
-            const heroAmountEl = document.getElementById('settle-hero-amount');
-
-            if (finalNetBalance < 0) {
-                const oweAmount = Math.abs(finalNetBalance);
-                heroLabelEl.innerHTML = `<span class="text-[#823a45] font-black">記得轉給 Hsiang</span>`;
-                heroAmountEl.innerText = `$${Math.round(oweAmount).toLocaleString()}`;
-                heroAmountEl.className = "text-5xl sm:text-6xl font-black font-comic tracking-tight text-[#823a45]";
-            } else if (finalNetBalance > 0) {
-                heroLabelEl.innerHTML = `<span class="text-[#4a4e51] font-black">記得轉給 Ning</span>`;
-                heroAmountEl.innerText = `$${Math.round(finalNetBalance).toLocaleString()}`;
-                heroAmountEl.className = "text-5xl sm:text-6xl font-black font-comic tracking-tight text-stone-900";
-            } else {
-                heroLabelEl.innerHTML = `<span class="text-stone-700 font-black">✨ 完全平帳</span>`;
-                heroAmountEl.innerText = `$0`;
-                heroAmountEl.className = "text-5xl sm:text-6xl font-black font-comic tracking-tight text-stone-800";
-            }
+            presentSettlement(loaded?finalNetBalance:null,'登入後查看待轉金額');
 
             renderTransferTable();
         }
 
+        function toggleRepaymentHistory() {
+            showAllRepayments=!showAllRepayments;renderTransferTable();
+        }
         function renderTransferTable() {
-            const tbody = document.getElementById('transfer-table-body');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-
-            const currentYearStr = currentYearMonth.split('-')[0];
-            const cumulativeTransfers = transferRecords.filter(tf => tf.date && tf.date.startsWith(currentYearStr));
-
-            if (cumulativeTransfers.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-stone-400 font-bold">尚無轉帳紀錄</td></tr>`;
-                return;
-            }
-
-            cumulativeTransfers.forEach(tf => {
-                const formattedDate = tf.date.replace(/-/g, '/');
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-stone-50 transition";
-                tr.innerHTML = `
-                    <td class="py-3 px-3.5 font-comic font-bold text-stone-700 whitespace-nowrap">${formattedDate}</td>
-                    <td class="py-3 px-3.5 font-bold text-stone-900 whitespace-nowrap">${tf.from}</td>
-                    <td class="py-3 px-3.5 font-bold text-stone-500 text-sm whitespace-nowrap">${tf.note || '-'}</td>
-                    <td class="py-3 px-3.5 font-comic font-black text-right text-stone-900 whitespace-nowrap">$${tf.amount.toLocaleString()}</td>
-                    <td class="py-3 px-3.5 text-center whitespace-nowrap">
-                        <button onclick="deleteTransferRecord(${tf.id})" class="text-stone-400 hover:text-[#823a45] transition p-1" title="刪除">
-                            <i class="fa-solid fa-trash-can text-base"></i>
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
+            const list=document.getElementById('transfer-table-body');if(!list) return;
+            const records=transferRecords.filter(tf=>tf.date<=currentTodayStr).sort((a,b)=>b.date.localeCompare(a.date));
+            const button=document.getElementById('repayment-expand');
+            if(button) {button.hidden=records.length<=3;button.textContent=showAllRepayments?'收合紀錄 ‹':'查看全部 ›';button.setAttribute('aria-expanded',String(showAllRepayments));}
+            if(!records.length) {list.innerHTML='<div class="empty-state">'+(loaded?'還沒有還款紀錄':'登入後查看還款紀錄')+'</div>';return;}
+            list.innerHTML=(showAllRepayments?records:records.slice(0,3)).map(tf=>{
+                const reverse=tf.from==='Ning';
+                const note=tf.note&&tf.note!=='-'?`<div class="repayment-note">${escapeHtml(tf.note)}</div>`:'';
+                return `<article class="repayment-row"><span class="repayment-icon" aria-hidden="true">${reverse?'←':'→'}</span><div><div class="repayment-name">Hsiang ${reverse?'←':'→'} Ning</div><div class="repayment-date">${escapeHtml(tf.date.replace(/-/g,'/'))}</div>${note}</div><div class="repayment-value ${reverse?'reverse':''}">$${Number(tf.amount).toLocaleString()}</div></article>`;
+            }).join('');
         }
-
         function toggleTransferModal() {
-            const modal = document.getElementById('transfer-modal');
-            if (!modal) return;
+            const modal=document.getElementById('transfer-modal');if(!modal) return;
+            if(modal.classList.contains('hidden')) {
+                if(!loaded||settlementBalance===null) {showToast('請先載入有效結算資料');return;}
+                if(busy) {showToast('上一個操作仍在處理中');return;}
+                document.getElementById('tf-date').value=currentTodayStr;
+                document.getElementById('tf-from').value=settlementBalance<0?'Ning':'Hsiang';
+                document.getElementById('tf-to').value=settlementBalance<0?'Hsiang':'Ning';
+                document.getElementById('tf-amount').value=settlementBalance===0?'':String(Math.abs(Math.round(settlementBalance)));
+                document.getElementById('tf-note').value='';
+            }
             modal.classList.toggle('hidden');
-            if (!modal.classList.contains('hidden')) {
-                document.getElementById('tf-date').value = currentTodayStr;
-                document.getElementById('tf-amount').value = '';
-                document.getElementById('tf-note').value = '';
-            }
         }
 
-        function addTransferRecord() {
-            const date = document.getElementById('tf-date').value;
-            const from = document.getElementById('tf-from').value;
-            const to = document.getElementById('tf-to').value;
-            const amount = parseFloat(document.getElementById('tf-amount').value);
-            const note = (document.getElementById('tf-note').value || '').trim();
-
-            if (!date || isNaN(amount) || amount <= 0) {
-                showToast('請填寫有效的日期與金額');
-                return;
-            }
-
-            const newTransfer = { date, from, to, amount, note };
-            
-            toggleTransferModal();
-
-            const apiUrl = localStorage.getItem('gas_api_url');
-            if (apiUrl) {
-                showToast('正在寫入 Google Sheets Transfers 分頁...');
-                fetch(apiUrl, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'addTransfer',
-                        transfer: newTransfer
-                    })
-                }).then(() => {
-                    showToast('已成功登記轉帳並寫入雲端！');
-                    setTimeout(() => fetchDataFromGAS(), 1200);
-                }).catch(err => {
-                    console.error(err);
-                    showToast('同步失敗，僅更新本機數據');
-                });
-            } else {
-                const newId = transferRecords.length > 0 ? Math.max(...transferRecords.map(r => r.id)) + 1 : 1;
-                transferRecords.push({ id: newId, ...newTransfer });
-                renderSettlement();
-                showToast('已成功登記轉帳紀錄！');
-            }
-        }
-
-        function deleteTransferRecord(id) {
-            const apiUrl = localStorage.getItem('gas_api_url');
-            if (apiUrl) {
-                showToast('正在從雲端刪除轉帳紀錄...');
-                fetch(apiUrl, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'deleteTransfer',
-                        id: id
-                    })
-                }).then(() => {
-                    showToast('已自雲端刪除轉帳紀錄！');
-                    setTimeout(() => fetchDataFromGAS(), 1200);
-                }).catch(err => console.error(err));
-            } else {
-                transferRecords = transferRecords.filter(r => r.id !== id);
-                renderSettlement();
-                showToast('已刪除轉帳紀錄');
-            }
+        async function addTransferRecord() {
+            const date=document.getElementById('tf-date').value;
+            const from=document.getElementById('tf-from').value;
+            const to=document.getElementById('tf-to').value;
+            const amount=Number(document.getElementById('tf-amount').value);
+            const note=document.getElementById('tf-note').value.trim();
+            if(!date||!Number.isInteger(amount)||amount<=0||from===to) {showToast('請檢查日期、轉帳人與整數金額');return;}
+            const signature=JSON.stringify({date,from,to,amount,note});
+            if(!pendingTransfer||pendingTransfer.signature!==signature) pendingTransfer={signature,requestId:crypto.randomUUID()};
+            const requestId=pendingTransfer.requestId;
+            try {
+                await writeThenVerify({action:'addTransfer',requestId,transfer:{date,from,to,amount,note}},
+                    res=>res.transfers.some(t=>t.requestId===requestId));
+                pendingTransfer=null;toggleTransferModal();showToast('轉帳已寫入 Sheets');
+            } catch(e) {showToast('無法確認轉帳：'+e.message);}
         }
 
         // SETTINGS
+        function loadBudgetMonth() {renderBudgetInputs();}
         function renderBudgetInputs() {
+            const monthInput=document.getElementById('budget-effective-month');
+            if(monthInput&&!monthInput.value) monthInput.value=currentYearMonth;
+            applyBudget(monthInput?.value||currentYearMonth);
             const tbody = document.getElementById('budget-settings-tbody');
             if (!tbody) return;
             tbody.innerHTML = '';
@@ -1247,30 +1240,34 @@
                     <td class="py-3.5 px-4 font-black text-lg text-stone-900 whitespace-nowrap">
                         <span class="inline-flex items-center space-x-2">
                             <span class="${style.color} text-xl">${style.iconHtml}</span>
-                            <span>${cat}</span>
+                            <span>${escapeHtml(cat)}</span>
                         </span>
                     </td>
                     <td class="py-3.5 px-4">
-                        <input type="number" id="budget-hub-${cat}" value="${b.hubLimit}" class="w-full max-w-[120px] bg-stone-50 border border-stone-300 px-3 py-1.5 font-comic font-bold text-base">
+                        <input type="number" id="budget-hub-${escapeHtml(cat)}" value="${b.hubLimit}" class="w-full max-w-[120px] bg-stone-50 border border-stone-300 px-3 py-1.5 font-comic font-bold text-base">
                     </td>
                     <td class="py-3.5 px-4">
-                        <input type="number" id="budget-my-${cat}" value="${b.myLimit}" class="w-full max-w-[120px] bg-stone-50 border border-stone-300 px-3 py-1.5 font-comic font-bold text-base">
+                        <input type="number" id="budget-my-${escapeHtml(cat)}" value="${b.myLimit}" class="w-full max-w-[120px] bg-stone-50 border border-stone-300 px-3 py-1.5 font-comic font-bold text-base">
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        function saveBudgets() {
-            Object.keys(defaultBudgets).forEach(cat => {
-                const hubVal = parseFloat(document.getElementById(`budget-hub-${cat}`)?.value);
-                const myVal = parseFloat(document.getElementById(`budget-my-${cat}`)?.value);
-                if (!isNaN(hubVal)) defaultBudgets[cat].hubLimit = hubVal;
-                if (!isNaN(myVal)) defaultBudgets[cat].myLimit = myVal;
-            });
-            renderHome();
-            renderReport();
-            showToast('預算設定已更新！');
+        async function saveBudgets() {
+            const budgets=Object.create(null);
+            for(const cat of Object.keys(defaultBudgets)) {
+                const hub=Number(document.getElementById(`budget-hub-${cat}`).value);
+                const my=Number(document.getElementById(`budget-my-${cat}`).value);
+                if(!Number.isInteger(hub)||hub<0||!Number.isInteger(my)||my<0) {showToast('預算請輸入非負整數');return;}
+                budgets[cat]={hubLimit:hub,myLimit:my};
+            }
+            const month=document.getElementById('budget-effective-month').value;
+            try {
+                await writeThenVerify({action:'saveBudgets',effectiveMonth:month,budgets,expectedBudgetVersion:budgetVersion},
+                    res=>Object.entries(budgets).every(([cat,b])=>res.budgetRows.some(r=>r.month===month&&r.category===cat&&r.hubLimit===b.hubLimit&&r.myLimit===b.myLimit)));
+                showToast(`預算已從 ${month} 生效`);
+            } catch(e) {showToast('儲存失敗：'+e.message);}
         }
 
         function toggleMonthlyDetailModal() {
@@ -1309,7 +1306,7 @@
                 tr.className = "hover:bg-stone-50 transition";
                 const shortDate = tx.date.substring(5).replace('-', '/');
                 const displayTitle = tx.item || tx.subcategory || tx.category || '未命名項目';
-                const noteHtml = tx.note ? `<div class="text-xs text-stone-400 font-normal mt-0.5">${tx.note}</div>` : '';
+                const noteHtml = tx.note ? `<div class="text-xs text-stone-400 font-normal mt-0.5">${escapeHtml(tx.note)}</div>` : '';
 
                 tr.innerHTML = `
                     <td class="py-2.5 px-3 font-comic font-bold text-stone-700 whitespace-nowrap align-middle">${shortDate}</td>
@@ -1317,7 +1314,7 @@
                         <div class="flex items-center space-x-2.5">
                             ${getCategoryIconBadge(tx.category)}
                             <div>
-                                <div class="text-stone-900 font-black text-base">${displayTitle}</div>
+                                <div class="text-stone-900 font-black text-base">${escapeHtml(displayTitle)}</div>
                                 ${noteHtml}
                             </div>
                         </div>
@@ -1334,7 +1331,7 @@
             if (!container) return;
             const toast = document.createElement('div');
             toast.className = "bg-stone-900 text-stone-100 text-sm font-bold px-4 py-3 border border-stone-700 shadow-xl flex items-center justify-between transition-all duration-300 opacity-100";
-            toast.innerHTML = `<span>${message}</span><i class="fa-solid fa-check text-[#c2d1b8] ml-3"></i>`;
+            toast.textContent = message;
             container.appendChild(toast);
             setTimeout(() => toast.remove(), 2500);
         }
@@ -1355,5 +1352,3 @@
     </script>
 </body>
 </html>
-
-
